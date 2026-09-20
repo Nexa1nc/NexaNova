@@ -5,38 +5,32 @@ from qdrant_client import QdrantClient
 from qdrant_client.http import models
 from sentence_transformers import SentenceTransformer
 
-# 1. Recupera le chiavi dalle impostazioni di GitHub
 QDRANT_URL = os.environ.get("QDRANT_URL")
 QDRANT_API_KEY = os.environ.get("QDRANT_API_KEY")
 
 if not QDRANT_URL or not QDRANT_API_KEY:
-    raise ValueError("ERRORE: QDRANT_URL o QDRANT_API_KEY non sono stati trovati nei Secrets di GitHub!")
+    raise ValueError("ERRORE: Secrets non trovati!")
 
-print("Connessione a Qdrant Cloud in corso...")
 client = QdrantClient(url=QDRANT_URL, api_key=QDRANT_API_KEY)
-
-# 2. Verifica se la collezione 'global_web' esiste, altrimenti la crea
 collection_name = "global_web"
-collections = client.get_collections().collections
-exists = any(c.name == collection_name for c in collections)
 
-if not exists:
-    print(f"La collezione '{collection_name}' non esiste. Creazione in corso...")
-    client.create_collection(
-        collection_name=collection_name,
-        vectors_config=models.VectorParams(size=384, distance=models.Distance.COSINE)
-    )
+# Ricrea/Assicura collezione
+try:
+    collections = client.get_collections().collections
+    if not any(c.name == collection_name for c in collections):
+        client.create_collection(
+            collection_name=collection_name,
+            vectors_config=models.VectorParams(size=384, distance=models.Distance.COSINE)
+        )
+except Exception as e:
+    print(f"Errore collezione: {e}")
 
-print("Caricamento del modello per gli embeddings...")
 model = SentenceTransformer('all-MiniLM-L6-v2')
 
-# 3. Legge i dati da Common Crawl
-print("Recupero dati da Common Crawl...")
-index_url = "https://index.commoncrawl.org/CC-MAIN-2024-10-index?url=*.org&output=json&limit=50"
+# Scarichiamo un campione di siti con metadati più ricchi
+print("Fetching dati da Common Crawl / Open Web...")
+index_url = "https://index.commoncrawl.org/CC-MAIN-2024-10-index?url=*.com&output=json&limit=150"
 res = requests.get(index_url)
-
-if res.status_code != 200:
-    raise Exception(f"Errore durante la richiesta a Common Crawl: status code {res.status_code}")
 
 points = []
 idx = 1
@@ -44,19 +38,31 @@ idx = 1
 for line in res.text.strip().split('\n'):
     if not line:
         continue
-    data = json.loads(line)
-    url = data.get("url")
-    title = data.get("title", url)
-    
-    vector = model.encode(title).tolist()
-    points.append({
-        "id": idx,
-        "vector": vector,
-        "payload": {"url": url, "title": title}
-    })
-    idx += 1
+    try:
+        data = json.loads(line)
+        raw_url = data.get("url", "")
+        
+        # Pulizia titolo e derivazione descrizione dal path/URL se il titolo manca
+        domain = raw_url.split('/')[2] if '://' in raw_url else raw_url
+        clean_title = data.get("title") or domain.replace("www.", "").capitalize()
+        description = f"Risultato web indicizzato da {domain}. Clicca per visitare la pagina originale."
 
-# 4. Invia i vettori a Qdrant Cloud
-print(f"Invio di {len(points)} punti a Qdrant...")
+        vector = model.encode(clean_title + " " + description).tolist()
+        
+        points.append({
+            "id": idx,
+            "vector": vector,
+            "payload": {
+                "url": raw_url,
+                "title": clean_title,
+                "description": description,
+                "domain": domain
+            }
+        })
+        idx += 1
+    except Exception:
+        continue
+
+print(f"Caricamento di {len(points)} punti su Qdrant...")
 client.upsert(collection_name=collection_name, points=points)
-print("Operazione completata con successo!")
+print("Completato!")
