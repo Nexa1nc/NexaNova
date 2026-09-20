@@ -34,7 +34,7 @@ ALLOWED_TLDS = ('.it', '.com', '.org', '.net', '.edu', '.eu', '.gov', '.io')
 BLOCKED_PATTERNS = [
     r'netsoltrademark', r'__media__', r'robots\.txt', r'euro-shop', 
     r'checkmate', r'0-0-0', r'parking', r'redirect', r'\.php\?d=',
-    r'slot', r'casino', r me'crypto', r'advert', r'click'
+    r'slot', r'casino', r'crypto', r'advert', r'click'
 ]
 
 def is_valid_domain(domain):
