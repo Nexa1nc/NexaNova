@@ -48,12 +48,16 @@
     .results-label { margin-bottom: 36px; font-size: 0.7rem; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(17,17,17,0.34); border-bottom: 1px solid rgba(17,17,17,0.08); padding-bottom: 14px; }
     .result-item { margin-bottom: 28px; position: relative; padding: 20px; background: rgba(255,255,255,0.4); border-radius: 4px; transition: transform 0.2s ease; }
     .result-item:hover { transform: translateX(8px); }
-    .res-url { font-size: 0.7rem; color: rgba(17,17,17,0.4); margin-bottom: 4px; display: block; word-break: break-all; }
+    
+    /* URL e Badge di verifica */
+    .url-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .res-url { font-size: 0.7rem; color: rgba(17,17,17,0.5); word-break: break-all; }
+    .verified-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.65rem; color: #16a34a; font-weight: 700; background: rgba(22, 163, 74, 0.1); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(22, 163, 74, 0.2); }
+
     .res-title { font-size: 1.15rem; font-weight: 700; color: #111111; text-decoration: none; margin-bottom: 8px; display: inline-block; }
     .res-title:hover { text-decoration: underline; }
     .res-desc { font-size: 0.85rem; line-height: 1.6; color: rgba(17,17,17,0.6); }
 
-    /* CONTROLLI PAGINAZIONE AVANTI / INDIETRO */
     .pagination-bar { display: flex; align-items: center; justify-content: space-between; margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(17,17,17,0.15); }
     .page-btn { background: #111111; color: #f4f2ec; border: none; padding: 12px 20px; font-size: 0.8rem; font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 0.08em; transition: opacity 0.2s; }
     .page-btn:disabled { opacity: 0.25; cursor: not-allowed; }
@@ -142,7 +146,7 @@
         const response = await fetch("/api/search", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ page: page, limit: 10 })
+          body: JSON.stringify({ query: query, page: page, limit: 10 })
         });
         const data = await response.json();
 
@@ -152,11 +156,19 @@
           data.result.points.forEach(point => {
             const url = point.payload.url || "#";
             const title = point.payload.title || url;
-            const desc = point.payload.description || "Nessuna descrizione disponibile.";
+            // Pulizia descrizione per rimuovere la dicitura fissa
+            let desc = point.payload.description || "Nessuna descrizione disponibile.";
+            desc = desc.replace("Sito web verificato", "").replace("Clicca per accedere direttamente.", "").trim();
 
             list.innerHTML += `
               <div class="result-item">
-                <span class="res-url">${url}</span>
+                <div class="url-row">
+                  <span class="verified-badge">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                    Sicuro
+                  </span>
+                  <span class="res-url">${url}</span>
+                </div>
                 <a href="${url}" target="_blank" rel="noopener noreferrer" class="res-title">${title}</a>
                 <p class="res-desc">${desc}</p>
               </div>
@@ -167,12 +179,12 @@
           document.getElementById('prevBtn').disabled = (page === 1);
           document.getElementById('nextBtn').disabled = (data.result.points.length < 10);
         } else {
-          list.innerHTML = `<p class="results-label">Nessun altro risultato disponibile.</p>`;
+          list.innerHTML = `<p class="results-label">Nessun risultato trovato per "${query}". Prova con un'altra parola.</p>`;
           document.getElementById('nextBtn').disabled = true;
         }
       } catch (error) {
         console.error(error);
-        list.innerHTML = `<p class="results-label" style="color: red;">Errore di caricamento.</p>`;
+        list.innerHTML = `<p class="results-label" style="color: red;">Errore nel caricamento dei dati.</p>`;
       }
     }
 
