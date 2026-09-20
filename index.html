@@ -9,304 +9,61 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
   <style>
-    * {
-      font-family: 'Space Mono', monospace;
-      box-sizing: border-box;
-    }
+    * { font-family: 'Space Mono', monospace; box-sizing: border-box; }
+    html, body { width: 100vw; margin: 0; padding: 0; overflow-x: hidden; }
+    body { background-color: #f4f2ec; color: #111111; min-height: 100vh; overflow-y: hidden; }
+    body.results-active { overflow-y: auto; }
+    #touch-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+    header { position: fixed; top: 0; left: 0; width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 32px 40px; z-index: 50; transition: all 0.4s ease; }
+    body.results-active header { padding: 20px 40px; background: rgba(244, 242, 236, 0.9); backdrop-filter: blur(10px); }
+    .brand { display: flex; align-items: center; cursor: pointer; }
+    .brand-dot { width: 10px; height: 10px; background: #111111; flex-shrink: 0; }
+    .clock { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em; color: #111111; margin-left: auto; }
+    
+    .home-section { position: relative; z-index: 10; width: 100%; max-width: 620px; padding: 0 32px; display: flex; flex-direction: column; align-items: center; margin: 0 auto; min-height: 100vh; justify-content: center; margin-top: -150px; transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+    body.results-active .home-section { opacity: 0; transform: translateY(-50px) scale(0.95); pointer-events: none; position: absolute; }
+    .logo-img { width: 500px; height: 250px; object-fit: contain; margin-bottom: 10px; transform: scale(1.35); }
 
-    html, body {
-      width: 100vw;
-      margin: 0;
-      padding: 0;
-      overflow-x: hidden;
-    }
-
-    body {
-      background-color: #f4f2ec;
-      color: #111111;
-      min-height: 100vh;
-      overflow-y: hidden;
-    }
-
-    body.results-active {
-      overflow-y: auto;
-    }
-
-    #touch-canvas {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      pointer-events: none;
-    }
-
-    header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 32px 40px;
-      z-index: 50;
-      transition: all 0.4s ease;
-    }
-
-    body.results-active header {
-      padding: 20px 40px;
-      background: rgba(244, 242, 236, 0.9);
-      backdrop-filter: blur(10px);
-      border-bottom: none;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-    }
-
-    .brand-dot {
-      width: 10px;
-      height: 10px;
-      background: #111111;
-      flex-shrink: 0;
-    }
-
-    .clock {
-      font-size: 0.8rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      color: #111111;
-      margin-left: auto;
-    }
-
-    /* HOME */
-    .home-section {
-      position: relative;
-      z-index: 10;
-      width: 100%;
-      max-width: 620px;
-      padding: 0 32px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin: 0 auto;
-      min-height: 100vh;
-      justify-content: center;
-      margin-top: -150px;
-      transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    body.results-active .home-section {
-      opacity: 0;
-      transform: translateY(-50px) scale(0.95);
-      pointer-events: none;
-      position: absolute;
-    }
-
-    .logo-img {
-      width: 500px;
-      height: 250px;
-      object-fit: contain;
-      margin-bottom: 10px;
-      transform: scale(1.35);
-    }
-
-    /* BARRA DI RICERCA */
-    .search-frame {
-      position: relative;
-      width: 100%;
-    }
-
-    .corner {
-      position: absolute;
-      width: 14px;
-      height: 14px;
-      border-color: rgba(17,17,17,0.22);
-      border-style: solid;
-      transition: border-color 0.25s ease, transform 0.25s ease;
-      pointer-events: none;
-    }
-
+    .search-frame { position: relative; width: 100%; }
+    .corner { position: absolute; width: 14px; height: 14px; border-color: rgba(17,17,17,0.22); border-style: solid; transition: border-color 0.25s ease, transform 0.25s ease; pointer-events: none; }
     .corner.tl { top: 0; left: 0; border-width: 1.5px 0 0 1.5px; }
     .corner.tr { top: 0; right: 0; border-width: 1.5px 1.5px 0 0; }
     .corner.bl { bottom: 0; left: 0; border-width: 0 0 1.5px 1.5px; }
     .corner.br { bottom: 0; right: 0; border-width: 0 1.5px 1.5px 0; }
+    .search-frame:focus-within .corner { border-color: #111111; transform: scale(1.15); }
+    .search-frame input { width: 100%; background: transparent; border: none; outline: none; padding: 22px 56px 22px 24px; font-size: 1.05rem; color: #111111; }
+    .search-frame input::placeholder { color: rgba(17,17,17,0.35); }
+    .search-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: 38px; height: 38px; border: none; border-radius: 50%; background: #111111; color: #f4f2ec; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.2s ease; }
+    .search-btn:hover { transform: translateY(-50%) scale(1.08); background: #333333; }
+    .hint { margin-top: 28px; font-size: 0.65rem; letter-spacing: 0.25em; text-transform: uppercase; color: rgba(17,17,17,0.38); }
 
-    .search-frame:focus-within .corner {
-      border-color: #111111;
-      transform: scale(1.15);
-    }
+    .results-top-bar { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); width: 460px; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.35s ease; }
+    body.results-active .results-top-bar { opacity: 1; pointer-events: auto; }
+    .results-top-bar .search-frame input { padding: 16px 48px 16px 20px; font-size: 0.9rem; }
+    .results-top-bar .corner { width: 11px; height: 11px; }
+    .results-top-bar .search-btn { width: 32px; height: 32px; right: 10px; }
 
-    .search-frame input {
-      width: 100%;
-      background: transparent;
-      border: none;
-      outline: none;
-      padding: 22px 56px 22px 24px;
-      font-size: 1.05rem;
-      color: #111111;
-    }
-
-    .search-frame input::placeholder {
-      color: rgba(17,17,17,0.35);
-    }
-
-    .search-btn {
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 38px;
-      height: 38px;
-      border: none;
-      border-radius: 50%;
-      background: #111111;
-      color: #f4f2ec;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: transform 0.2s ease, background 0.2s ease;
-    }
-
-    .search-btn:hover {
-      transform: translateY(-50%) scale(1.08);
-      background: #333333;
-    }
-
-    .hint {
-      margin-top: 28px;
-      font-size: 0.65rem;
-      letter-spacing: 0.25em;
-      text-transform: uppercase;
-      color: rgba(17,17,17,0.38);
-    }
-
-    /* BARRA RISULTATI COMPATTA IN ALTO */
-    .results-top-bar {
-      position: fixed;
-      top: 16px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 460px;
-      z-index: 100;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.35s ease;
-    }
-
-    body.results-active .results-top-bar {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .results-top-bar .search-frame input {
-      padding: 16px 48px 16px 20px;
-      font-size: 0.9rem;
-    }
-
-    .results-top-bar .corner {
-      width: 11px;
-      height: 11px;
-    }
-
-    .results-top-bar .search-btn {
-      width: 32px;
-      height: 32px;
-      right: 10px;
-    }
-
-    /* RISULTATI */
-    .results-container {
-      position: relative;
-      z-index: 10;
-      width: 100%;
-      max-width: 780px;
-      margin: 0 auto;
-      padding: 120px 40px 100px;
-      opacity: 0;
-      transform: translateY(40px);
-      transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-      display: none;
-    }
-
-    body.results-active .results-container {
-      display: block;
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .results-label {
-      margin-bottom: 36px;
-      font-size: 0.7rem;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      color: rgba(17,17,17,0.34);
-      border-bottom: 1px solid rgba(17,17,17,0.08);
-      padding-bottom: 14px;
-    }
-
-    .result-item {
-      margin-bottom: 38px;
-      position: relative;
-      padding: 20px;
-      transition: transform 0.2s ease;
-    }
-
-    .result-item:hover {
-      transform: translateX(8px);
-    }
-
-    .result-item .corner-res {
-      position: absolute;
-      width: 10px;
-      height: 10px;
-      border-color: rgba(17,17,17,0.1);
-      border-style: solid;
-      pointer-events: none;
-    }
-
+    .results-container { position: relative; z-index: 10; width: 100%; max-width: 780px; margin: 0 auto; padding: 120px 40px 100px; opacity: 0; transform: translateY(40px); transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1); display: none; }
+    body.results-active .results-container { display: block; opacity: 1; transform: translateY(0); }
+    .results-label { margin-bottom: 36px; font-size: 0.7rem; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(17,17,17,0.34); border-bottom: 1px solid rgba(17,17,17,0.08); padding-bottom: 14px; }
+    .result-item { margin-bottom: 38px; position: relative; padding: 20px; transition: transform 0.2s ease; }
+    .result-item:hover { transform: translateX(8px); }
+    .result-item .corner-res { position: absolute; width: 10px; height: 10px; border-color: rgba(17,17,17,0.1); border-style: solid; pointer-events: none; }
     .result-item .corner-res.tl { top: 0; left: 0; border-width: 1px 0 0 1px; }
     .result-item .corner-res.br { bottom: 0; right: 0; border-width: 0 1px 1px 0; }
+    .res-url { font-size: 0.7rem; color: rgba(17,17,17,0.4); margin-bottom: 4px; display: block; }
+    .res-title { font-size: 1.15rem; font-weight: 700; color: #111111; text-decoration: none; margin-bottom: 8px; display: inline-block; }
+    .res-title:hover { text-decoration: underline; }
+    .res-desc { font-size: 0.85rem; line-height: 1.6; color: rgba(17,17,17,0.6); max-width: 600px; }
 
-    .res-url {
-      font-size: 0.7rem;
-      color: rgba(17,17,17,0.4);
-      margin-bottom: 4px;
-      display: block;
-    }
+    /* PAGINAZIONE */
+    .pagination { display: flex; align-items: center; justify-content: space-between; margin-top: 40px; border-top: 1px solid rgba(17,17,17,0.08); padding-top: 20px; }
+    .page-btn { background: #111111; color: #f4f2ec; border: none; padding: 10px 18px; font-size: 0.75rem; cursor: pointer; text-transform: uppercase; letter-spacing: 0.1em; }
+    .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .page-info { font-size: 0.75rem; color: rgba(17,17,17,0.5); }
 
-    .res-title {
-      font-size: 1.15rem;
-      font-weight: 700;
-      color: #111111;
-      text-decoration: none;
-      margin-bottom: 8px;
-      display: inline-block;
-    }
-
-    .res-title:hover {
-      text-decoration: underline;
-    }
-
-    footer {
-      position: fixed;
-      bottom: 24px;
-      width: 100%;
-      text-align: center;
-      font-size: 0.7rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: rgba(17,17,17,0.4);
-      z-index: 5;
-    }
-
-    body.results-active footer {
-      position: relative;
-      bottom: 0;
-      padding: 40px 0;
-    }
+    footer { position: fixed; bottom: 24px; width: 100%; text-align: center; font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(17,17,17,0.4); z-index: 5; }
+    body.results-active footer { position: relative; bottom: 0; padding: 40px 0; }
   </style>
 </head>
 <body>
@@ -320,80 +77,83 @@
     <div class="clock" id="clock">00:00:00</div>
   </header>
 
-  <!-- BARRA RISULTATI COMPATTA -->
   <div class="results-top-bar">
     <form class="search-frame" onsubmit="return handleSearch(event, 'top')">
-      <div class="corner tl"></div>
-      <div class="corner tr"></div>
-      <div class="corner bl"></div>
-      <div class="corner br"></div>
+      <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
       <input type="text" id="topQuery" placeholder="Cerca ancora..." autocomplete="off" />
       <button type="submit" class="search-btn" aria-label="Cerca">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="5" y1="12" x2="19" y2="12"></line>
-          <polyline points="12 5 19 12 12 19"></polyline>
-        </svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
       </button>
     </form>
   </div>
 
-  <!-- HOME -->
   <main class="home-section" id="homeSection">
     <img src="logo.png" alt="NexaNova logo" class="logo-img" />
-
     <form class="search-frame" onsubmit="return handleSearch(event, 'home')">
-      <div class="corner tl"></div>
-      <div class="corner tr"></div>
-      <div class="corner bl"></div>
-      <div class="corner br"></div>
+      <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
       <input type="text" id="homeQuery" placeholder="Inizia a digitare" autocomplete="off" />
       <button type="submit" class="search-btn" aria-label="Cerca">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="5" y1="12" x2="19" y2="12"></line>
-          <polyline points="12 5 19 12 12 19"></polyline>
-        </svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
       </button>
     </form>
-
     <p class="hint">Premi invio per cercare</p>
   </main>
 
-  <!-- RISULTATI -->
   <div class="results-container" id="resultsSection">
     <div id="resultsList"></div>
+    <div class="pagination">
+      <button id="prevBtn" class="page-btn" onclick="changePage(-1)" disabled>← Precedente</button>
+      <span id="pageInfo" class="page-info">Pagina 1</span>
+      <button id="nextBtn" class="page-btn" onclick="changePage(1)">Successiva →</button>
+    </div>
   </div>
 
   <footer>Created By Mattia Ristori</footer>
 
   <script>
+    let currentPage = 1;
+    let currentQuery = "";
+
     function handleSearch(e, type) {
       e.preventDefault();
       const query = type === 'home' ? document.getElementById('homeQuery').value : document.getElementById('topQuery').value;
       if (query.trim() === '') return false;
 
+      currentQuery = query;
+      currentPage = 1;
       document.getElementById('homeQuery').value = query;
       document.getElementById('topQuery').value = query;
-      showResults(query);
+      showResults(query, currentPage);
       return false;
     }
 
-    async function showResults(query) {
+    function changePage(direction) {
+      currentPage += direction;
+      if (currentPage < 1) currentPage = 1;
+      showResults(currentQuery, currentPage);
+    }
+
+    async function showResults(query, page) {
       const list = document.getElementById('resultsList');
-      list.innerHTML = `<p class="results-label">Ricerca in corso per: ${query}...</p>`;
+      list.innerHTML = `<p class="results-label">Caricamento pagina ${page} per: ${query}...</p>`;
       document.body.classList.add('results-active');
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
       try {
-        // Chiama il proxy serverless sicuro su Vercel (/api/search)
-        const response = await fetch("/api/search", { method: "POST" });
+        const response = await fetch("/api/search", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ page: page, limit: 10 })
+        });
         const data = await response.json();
 
         if (data.result && data.result.points && data.result.points.length > 0) {
-          list.innerHTML = `<p class="results-label">Risultati indicizzati per: ${query}</p>`;
+          list.innerHTML = `<p class="results-label">Pagina ${page} - Risultati per: ${query}</p>`;
           
           data.result.points.forEach(point => {
             const url = point.payload.url || "#";
             const title = point.payload.title || url;
+            const desc = point.payload.description || "Nessuna descrizione disponibile.";
 
             list.innerHTML += `
               <div class="result-item">
@@ -401,15 +161,21 @@
                 <div class="corner-res br"></div>
                 <span class="res-url">${url}</span>
                 <a href="${url}" target="_blank" rel="noopener noreferrer" class="res-title">${title}</a>
+                <p class="res-desc">${desc}</p>
               </div>
             `;
           });
+
+          document.getElementById('pageInfo').textContent = `Pagina ${page}`;
+          document.getElementById('prevBtn').disabled = (page === 1);
+          document.getElementById('nextBtn').disabled = (data.result.points.length < 10);
         } else {
-          list.innerHTML = `<p class="results-label">Nessun risultato trovato nel database per: ${query}</p>`;
+          list.innerHTML = `<p class="results-label">Nessun altro risultato trovato.</p>`;
+          document.getElementById('nextBtn').disabled = true;
         }
       } catch (error) {
         console.error(error);
-        list.innerHTML = `<p class="results-label" style="color: red;">Errore durante la connessione al server.</p>`;
+        list.innerHTML = `<p class="results-label" style="color: red;">Errore nel caricamento dei dati.</p>`;
       }
     }
 
@@ -420,66 +186,44 @@
     }
 
     function updateClock() {
-      const now = new Date();
-      document.getElementById('clock').textContent = now.toLocaleTimeString('it-IT');
+      document.getElementById('clock').textContent = new Date().toLocaleTimeString('it-IT');
     }
     setInterval(updateClock, 1000);
     updateClock();
 
-    /* ANIMAZIONE TOUCH-CANVAS */
     const canvas = document.getElementById('touch-canvas');
     const ctx = canvas.getContext('2d');
     let width, height, dots = [];
     const mouse = { x: -1000, y: -1000 };
 
     function initCanvas() {
-      width = window.innerWidth;
-      height = window.innerHeight;
-      canvas.width = width;
-      canvas.height = height;
+      width = window.innerWidth; height = window.innerHeight;
+      canvas.width = width; canvas.height = height;
       dots = [];
       for (let i = 0; i < 160; i++) {
-        dots.push({
-          x: Math.random() * width, y: Math.random() * height,
-          ox: 0, oy: 0,
-          base: 0.05 + Math.random() * 0.05,
-          size: 1 + Math.random() * 0.8
-        });
+        dots.push({ x: Math.random() * width, y: Math.random() * height, ox: 0, oy: 0, base: 0.05 + Math.random() * 0.05, size: 1 + Math.random() * 0.8 });
       }
     }
-
     window.addEventListener('resize', initCanvas);
     window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
 
     function animate() {
       ctx.clearRect(0, 0, width, height);
       dots.forEach(d => {
-        const dx = mouse.x - d.x;
-        const dy = mouse.y - d.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
+        const dx = mouse.x - d.x, dy = mouse.y - d.y, dist = Math.sqrt(dx * dx + dy * dy);
         let pullX = 0, pullY = 0, alpha = d.base, size = d.size;
-
         if (dist < 130) {
-          const force = (1 - dist / 130);
-          const angle = Math.atan2(dy, dx);
-          pullX = -Math.cos(angle) * force * 20;
-          pullY = -Math.sin(angle) * force * 20;
-          alpha = d.base + force * 0.6;
-          size = d.size + force * 1.5;
+          const force = (1 - dist / 130), angle = Math.atan2(dy, dx);
+          pullX = -Math.cos(angle) * force * 20; pullY = -Math.sin(angle) * force * 20;
+          alpha = d.base + force * 0.6; size = d.size + force * 1.5;
         }
-        d.ox += (pullX - d.ox) * 0.1;
-        d.oy += (pullY - d.oy) * 0.1;
-        ctx.beginPath();
-        ctx.arc(d.x + d.ox, d.y + d.oy, size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(17,17,17,${alpha})`;
-        ctx.fill();
+        d.ox += (pullX - d.ox) * 0.1; d.oy += (pullY - d.oy) * 0.1;
+        ctx.beginPath(); ctx.arc(d.x + d.ox, d.y + d.oy, size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(17,17,17,${alpha})`; ctx.fill();
       });
       requestAnimationFrame(animate);
     }
-
-    initCanvas();
-    animate();
+    initCanvas(); animate();
   </script>
-
 </body>
 </html>
