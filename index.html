@@ -46,21 +46,19 @@
     .results-container { position: relative; z-index: 10; width: 100%; max-width: 780px; margin: 0 auto; padding: 120px 40px 100px; opacity: 0; transform: translateY(40px); transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1); display: none; }
     body.results-active .results-container { display: block; opacity: 1; transform: translateY(0); }
     .results-label { margin-bottom: 36px; font-size: 0.7rem; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(17,17,17,0.34); border-bottom: 1px solid rgba(17,17,17,0.08); padding-bottom: 14px; }
-    .result-item { margin-bottom: 38px; position: relative; padding: 20px; transition: transform 0.2s ease; }
+    .result-item { margin-bottom: 28px; position: relative; padding: 20px; background: rgba(255,255,255,0.4); border-radius: 4px; transition: transform 0.2s ease; }
     .result-item:hover { transform: translateX(8px); }
-    .result-item .corner-res { position: absolute; width: 10px; height: 10px; border-color: rgba(17,17,17,0.1); border-style: solid; pointer-events: none; }
-    .result-item .corner-res.tl { top: 0; left: 0; border-width: 1px 0 0 1px; }
-    .result-item .corner-res.br { bottom: 0; right: 0; border-width: 0 1px 1px 0; }
-    .res-url { font-size: 0.7rem; color: rgba(17,17,17,0.4); margin-bottom: 4px; display: block; }
+    .res-url { font-size: 0.7rem; color: rgba(17,17,17,0.4); margin-bottom: 4px; display: block; word-break: break-all; }
     .res-title { font-size: 1.15rem; font-weight: 700; color: #111111; text-decoration: none; margin-bottom: 8px; display: inline-block; }
     .res-title:hover { text-decoration: underline; }
-    .res-desc { font-size: 0.85rem; line-height: 1.6; color: rgba(17,17,17,0.6); max-width: 600px; }
+    .res-desc { font-size: 0.85rem; line-height: 1.6; color: rgba(17,17,17,0.6); }
 
-    /* PAGINAZIONE */
-    .pagination { display: flex; align-items: center; justify-content: space-between; margin-top: 40px; border-top: 1px solid rgba(17,17,17,0.08); padding-top: 20px; }
-    .page-btn { background: #111111; color: #f4f2ec; border: none; padding: 10px 18px; font-size: 0.75rem; cursor: pointer; text-transform: uppercase; letter-spacing: 0.1em; }
-    .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-    .page-info { font-size: 0.75rem; color: rgba(17,17,17,0.5); }
+    /* CONTROLLI PAGINAZIONE AVANTI / INDIETRO */
+    .pagination-bar { display: flex; align-items: center; justify-content: space-between; margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(17,17,17,0.15); }
+    .page-btn { background: #111111; color: #f4f2ec; border: none; padding: 12px 20px; font-size: 0.8rem; font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 0.08em; transition: opacity 0.2s; }
+    .page-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+    .page-btn:not(:disabled):hover { background: #333333; }
+    .page-indicator { font-size: 0.8rem; font-weight: 700; color: #111111; }
 
     footer { position: fixed; bottom: 24px; width: 100%; text-align: center; font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(17,17,17,0.4); z-index: 5; }
     body.results-active footer { position: relative; bottom: 0; padding: 40px 0; }
@@ -101,9 +99,10 @@
 
   <div class="results-container" id="resultsSection">
     <div id="resultsList"></div>
-    <div class="pagination">
+
+    <div class="pagination-bar">
       <button id="prevBtn" class="page-btn" onclick="changePage(-1)" disabled>← Precedente</button>
-      <span id="pageInfo" class="page-info">Pagina 1</span>
+      <span id="pageIndicator" class="page-indicator">Pagina 1</span>
       <button id="nextBtn" class="page-btn" onclick="changePage(1)">Successiva →</button>
     </div>
   </div>
@@ -135,7 +134,7 @@
 
     async function showResults(query, page) {
       const list = document.getElementById('resultsList');
-      list.innerHTML = `<p class="results-label">Caricamento pagina ${page} per: ${query}...</p>`;
+      list.innerHTML = `<p class="results-label">Caricamento in corso...</p>`;
       document.body.classList.add('results-active');
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -157,8 +156,6 @@
 
             list.innerHTML += `
               <div class="result-item">
-                <div class="corner-res tl"></div>
-                <div class="corner-res br"></div>
                 <span class="res-url">${url}</span>
                 <a href="${url}" target="_blank" rel="noopener noreferrer" class="res-title">${title}</a>
                 <p class="res-desc">${desc}</p>
@@ -166,16 +163,16 @@
             `;
           });
 
-          document.getElementById('pageInfo').textContent = `Pagina ${page}`;
+          document.getElementById('pageIndicator').textContent = `Pagina ${page}`;
           document.getElementById('prevBtn').disabled = (page === 1);
           document.getElementById('nextBtn').disabled = (data.result.points.length < 10);
         } else {
-          list.innerHTML = `<p class="results-label">Nessun altro risultato trovato.</p>`;
+          list.innerHTML = `<p class="results-label">Nessun altro risultato disponibile.</p>`;
           document.getElementById('nextBtn').disabled = true;
         }
       } catch (error) {
         console.error(error);
-        list.innerHTML = `<p class="results-label" style="color: red;">Errore nel caricamento dei dati.</p>`;
+        list.innerHTML = `<p class="results-label" style="color: red;">Errore di caricamento.</p>`;
       }
     }
 
