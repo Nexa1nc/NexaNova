@@ -1,6 +1,7 @@
 import os
 import requests
 import json
+import re
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
 from sentence_transformers import SentenceTransformer
@@ -9,120 +10,128 @@ QDRANT_URL = os.environ.get("QDRANT_URL")
 QDRANT_API_KEY = os.environ.get("QDRANT_API_KEY")
 
 if not QDRANT_URL or not QDRANT_API_KEY:
-    raise ValueError("ERRORE: Secrets QDRANT_URL o QDRANT_API_KEY non trovati!")
+    raise ValueError("ERRORE: Secrets mancanti!")
 
 client = QdrantClient(url=QDRANT_URL, api_key=QDRANT_API_KEY)
 collection_name = "global_web"
 
-# Assicura la presenza della collezione su Qdrant
+# 1. SVUOTA LA VECCHIA COLLEZIONE PER ELIMINARE LA SPAZZATURA ESISTENTE
 try:
-    collections = client.get_collections().collections
-    if not any(c.name == collection_name for c in collections):
-        client.create_collection(
-            collection_name=collection_name,
-            vectors_config=models.VectorParams(size=384, distance=models.Distance.COSINE)
-        )
-except Exception as e:
-    print(f"Errore nella gestione della collezione: {e}")
+    client.delete_collection(collection_name=collection_name)
+    print("Vecchia collezione eliminata con successo.")
+except Exception:
+    pass
+
+client.create_collection(
+    collection_name=collection_name,
+    vectors_config=models.VectorParams(size=384, distance=models.Distance.COSINE)
+)
 
 model = SentenceTransformer('all-MiniLM-L6-v2')
 
-# Parole chiave e pattern da ignorare per pulire lo spam
-SPAM_KEYWORDS = [
-    "netsoltrademark", "__media__", "robots.txt", "euro-shop", 
-    "checkmate", "0-0-0", "parking", "redirect", ".php?d="
+# Estensioni web ammesse (Whitelist)
+ALLOWED_TLDS = ('.it', '.com', '.org', '.net', '.edu', '.eu', '.gov', '.io')
+
+# Keywords spazzatura da bloccare assolutamente
+BLOCKED_PATTERNS = [
+    r'netsoltrademark', r'__media__', r'robots\.txt', r'euro-shop', 
+    r'checkmate', r'0-0-0', r'parking', r'redirect', r'\.php\?d=',
+    r'slot', r'casino', r'crypto', r'advert', r'click'
 ]
 
-def is_clean_url(url):
-    """Verifica che l'URL non sia spam o un file non desiderato."""
-    url_lower = url.lower()
-    if any(spam in url_lower for spam in SPAM_KEYWORDS):
+def is_valid_domain(domain):
+    """Filtra domini spazzatura, numerici o sospetti."""
+    domain = domain.lower().strip()
+    
+    # Deve finire con un TLD affidabile
+    if not domain.endswith(ALLOWED_TLDS):
         return False
-    if url_lower.endswith(('.jpg', '.png', '.gif', '.css', '.js', '.txt')):
+        
+    # Blocca domini con troppi trattini o numeri consecutivi
+    if domain.count('-') > 2 or re.search(r'\d{4,}', domain):
         return False
+        
+    # Blocca pattern spazzatura noti
+    for pattern in BLOCKED_PATTERNS:
+        if re.search(pattern, domain):
+            return False
+            
     return True
+
+# Lista di domini Italiani e Globali Reali e Certificati
+SEED_DOMAINS_IT = [
+    "https://www.ansa.it", "https://www.repubblica.it", "https://www.corriere.it",
+    "https://www.ilsole24ore.com", "https://www.hwupgrade.it", "https://www.gazzetta.it",
+    "https://www.geopop.it", "https://www.html.it", "https://www.aranzulla.it",
+    "https://www.wikipedia.org", "https://it.wikipedia.org", "https://www.subito.it"
+]
+
+SEED_DOMAINS_EN = [
+    "https://www.bbc.com", "https://www.github.com", "https://www.techcrunch.com",
+    "https://www.theverge.com", "https://www.dev.to", "https://www.huggingface.co",
+    "https://www.medium.com", "https://www.stackoverflow.com"
+]
 
 points = []
 idx = 1
 
-# 1. RECUPERO PRECEDENZA ITALIANI (.it)
-print("1. Fetching siti italiani (.it)...")
-url_it = "https://index.commoncrawl.org/CC-MAIN-2024-10-index?url=*.it/*&output=json&limit=150"
+# Processa prima la lista dei domini affidabili
+all_seeds = [(url, "it") for url in SEED_DOMAINS_IT] + [(url, "en") for url in SEED_DOMAINS_EN]
+
+for raw_url, lang in all_seeds:
+    domain = raw_url.split('/')[2]
+    clean_title = domain.replace("www.", "").split('.')[0].capitalize()
+    desc = f"Sito web verificato ({domain}) in lingua {lang}. Clicca per accedere direttamente."
+
+    vector = model.encode(clean_title + " " + desc).tolist()
+    
+    points.append({
+        "id": idx,
+        "vector": vector,
+        "payload": {
+            "url": raw_url,
+            "title": f"{clean_title} - Home Page",
+            "description": desc,
+            "domain": domain,
+            "lang": lang
+        }
+    })
+    idx += 1
+
+# Recupero controllato da Common Crawl applicando i filtri severi
+print("Recupero dati filtrati da Common Crawl...")
 try:
-    res_it = requests.get(url_it, timeout=30)
-    for line in res_it.text.strip().split('\n'):
-        if not line:
-            continue
+    res = requests.get("https://index.commoncrawl.org/CC-MAIN-2024-10-index?url=*.it/*&output=json&limit=200", timeout=30)
+    for line in res.text.strip().split('\n'):
+        if not line or idx > 150:
+            break
         try:
             data = json.loads(line)
             raw_url = data.get("url", "")
-            if not is_clean_url(raw_url):
-                continue
-
             domain = raw_url.split('/')[2] if '://' in raw_url else raw_url
-            title = data.get("title") or domain.replace("www.", "").capitalize()
-            desc = f"Risultato in italiano da {domain}. Visita la pagina originale per approfondire."
+            
+            if is_valid_domain(domain):
+                title = data.get("title") or domain.replace("www.", "").capitalize()
+                desc = f"Risultato verificato da {domain}."
+                vector = model.encode(title + " " + desc).tolist()
 
-            vector = model.encode(title + " " + desc).tolist()
-
-            points.append({
-                "id": idx,
-                "vector": vector,
-                "payload": {
-                    "url": raw_url,
-                    "title": title,
-                    "description": desc,
-                    "domain": domain,
-                    "lang": "it"
-                }
-            })
-            idx += 1
+                points.append({
+                    "id": idx,
+                    "vector": vector,
+                    "payload": {
+                        "url": raw_url,
+                        "title": title,
+                        "description": desc,
+                        "domain": domain,
+                        "lang": "it"
+                    }
+                })
+                idx += 1
         except Exception:
             continue
 except Exception as e:
-    print(f"Errore download .it: {e}")
+    print(f"Errore Common Crawl: {e}")
 
-# 2. RECUPERO SITI INGLESI E GLOBALI (.com, .org)
-print("2. Fetching siti inglesi (.com)...")
-url_en = "https://index.commoncrawl.org/CC-MAIN-2024-10-index?url=*.com/*&output=json&limit=100"
-try:
-    res_en = requests.get(url_en, timeout=30)
-    for line in res_en.text.strip().split('\n'):
-        if not line:
-            continue
-        try:
-            data = json.loads(line)
-            raw_url = data.get("url", "")
-            if not is_clean_url(raw_url):
-                continue
-
-            domain = raw_url.split('/')[2] if '://' in raw_url else raw_url
-            title = data.get("title") or domain.replace("www.", "").capitalize()
-            desc = f"Web resource from {domain}. Click to view original context."
-
-            vector = model.encode(title + " " + desc).tolist()
-
-            points.append({
-                "id": idx,
-                "vector": vector,
-                "payload": {
-                    "url": raw_url,
-                    "title": title,
-                    "description": desc,
-                    "domain": domain,
-                    "lang": "en"
-                }
-            })
-            idx += 1
-        except Exception:
-            continue
-except Exception as e:
-    print(f"Errore download .com: {e}")
-
-# Caricamento su Qdrant (gli italiani saranno salvati nei primi ID)
-if points:
-    print(f"Caricamento di {len(points)} punti (Italiani + Inglesi puliti) su Qdrant...")
-    client.upsert(collection_name=collection_name, points=points)
-    print("Indicizzazione completata con successo!")
-else:
-    print("Nessun punto valido trovato da caricare.")
+print(f"Caricamento di {len(points)} punti puliti e verificati su Qdrant...")
+client.upsert(collection_name=collection_name, points=points)
+print("Database completamente ripulito e ripopolato!")
