@@ -6,93 +6,74 @@ export default async function handler(req, res) {
 
   const QDRANT_URL = process.env.QDRANT_URL;
   const QDRANT_API_KEY = process.env.QDRANT_API_KEY;
+  const HF_TOKEN = process.env.HF_TOKEN;
 
   try {
-    const q = query.trim().toLowerCase();
+    const q = query.trim();
 
-    // 1. Scarichiamo i punti dal database Qdrant
-    const response = await fetch(`${QDRANT_URL}/collections/global_web/points/scroll`, {
+    // 1. Se la query è vuota, restituiamo i primi punti generici
+    if (!q) {
+      const response = await fetch(`${QDRANT_URL}/collections/global_web/points/scroll`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "api-key": QDRANT_API_KEY
+        },
+        body: JSON.stringify({ limit, offset, with_payload: true })
+      });
+      const data = await response.json();
+      return res.status(200).json(data);
+    }
+
+    // 2. Convertiamo la parola cercata in un vettore numerico tramite Hugging Face
+    const hfRes = await fetch(
+      "https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2",
+      {
+        headers: {
+          "Content-Type": "application/json",
+          ...(HF_TOKEN ? { Authorization: `Bearer ${HF_TOKEN}` } : {})
+        },
+        method: "POST",
+        body: JSON.stringify({ inputs: q, options: { wait_for_model: true } }),
+      }
+    );
+
+    const vector = await hfRes.json();
+
+    // 3. Se il vettore è stato generato correttamente, eseguiamo la ricerca vettoriale su Qdrant
+    if (Array.isArray(vector) && typeof vector[0] === "number") {
+      const qdrantRes = await fetch(`${QDRANT_URL}/collections/global_web/points/search`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "api-key": QDRANT_API_KEY
+        },
+        body: JSON.stringify({
+          vector: vector,
+          limit: limit,
+          offset: offset,
+          with_payload: true
+        })
+      });
+
+      const qdrantData = await qdrantRes.json();
+      return res.status(200).json(qdrantData);
+    }
+
+    // 4. Fallback in caso di errori temporanei dell'API
+    const scrollRes = await fetch(`${QDRANT_URL}/collections/global_web/points/scroll`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "api-key": QDRANT_API_KEY
       },
-      body: JSON.stringify({
-        limit: 500, // Aumentiamo il limite per analizzare un corpus più ampio
-        with_payload: true
-      })
+      body: JSON.stringify({ limit: limit, offset: offset, with_payload: true })
     });
+    const scrollData = await scrollRes.json();
 
-    const data = await response.json();
-
-    if (!data.result || !data.result.points) {
-      return res.status(200).json({ result: { points: [] } });
-    }
-
-    const allPoints = data.result.points;
-
-    // Se la query è vuota, restituiamo direttamente i primi risultati
-    if (!q) {
-      const paginatedPoints = allPoints.slice(offset, offset + limit);
-      return res.status(200).json({
-        result: {
-          points: paginatedPoints,
-          total: allPoints.length
-        }
-      });
-    }
-
-    // 2. Separiamo le parole della ricerca (es. "ciao mondo" -> ["ciao", "mondo"])
-    const terms = q.split(/\s+/).filter(Boolean);
-
-    // 3. Calcoliamo un punteggio di pertinenza per ogni pagina
-    const scoredPoints = allPoints.map(pt => {
-      const payload = pt.payload || {};
-      const title = (payload.title || "").toLowerCase();
-      const domain = (payload.domain || "").toLowerCase();
-      const desc = (payload.description || "").toLowerCase();
-      const url = (payload.url || "").toLowerCase();
-
-      let score = 0;
-
-      terms.forEach(term => {
-        // Corrispondenza nell'URL o dominio (peso altissimo)
-        if (domain.includes(term)) score += 10;
-        if (url.includes(term)) score += 8;
-
-        // Corrispondenza nel Titolo (peso alto)
-        if (title.includes(term)) score += 5;
-
-        // Corrispondenza nella Descrizione/Testo (peso medio)
-        if (desc.includes(term)) score += 2;
-      });
-
-      return { point: pt, score };
-    });
-
-    // 4. Ordiniamo i risultati dal più pertinente al meno pertinente
-    let filteredResults = scoredPoints
-      .filter(item => item.score > 0)
-      .sort((a, b) => b.score - a.score)
-      .map(item => item.point);
-
-    // 5. SE NON TROVA NESSUN RISULTATO ESATTO (es. con la parola "ciao"):
-    // Invece di mostrare "Nessun risultato", restituisce le pagine del database come fa un motore di ricerca
-    if (filteredResults.length === 0) {
-      filteredResults = allPoints;
-    }
-
-    // Paginazione dei risultati finali
-    const paginatedPoints = filteredResults.slice(offset, offset + limit);
-
-    return res.status(200).json({
-      result: {
-        points: paginatedPoints,
-        total: filteredResults.length
-      }
-    });
+    return res.status(200).json(scrollData);
 
   } catch (error) {
-    return res.status(500).json({ error: 'Errore nel recupero dei dati' });
+    return res.status(500).json({ error: 'Errore durante la ricerca' });
   }
 }
