@@ -10,26 +10,7 @@ export default async function handler(req, res) {
   try {
     const q = query.trim().toLowerCase();
 
-    // 1. Se la query è vuota, mostriamo i primi risultati generali
-    if (!q) {
-      const response = await fetch(`${QDRANT_URL}/collections/global_web/points/scroll`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "api-key": QDRANT_API_KEY
-        },
-        body: JSON.stringify({
-          limit: limit,
-          offset: offset,
-          with_payload: true
-        })
-      });
-
-      const data = await response.json();
-      return res.status(200).json(data);
-    }
-
-    // 2. Se l'utente digita una parola, recuperiamo tutti i dati e li filtriamo in modo tollerante (case-insensitive)
+    // 1. Scarichiamo i punti dal database Qdrant
     const response = await fetch(`${QDRANT_URL}/collections/global_web/points/scroll`, {
       method: "POST",
       headers: {
@@ -37,37 +18,79 @@ export default async function handler(req, res) {
         "api-key": QDRANT_API_KEY
       },
       body: JSON.stringify({
-        limit: 200,
+        limit: 500, // Aumentiamo il limite per analizzare un corpus più ampio
         with_payload: true
       })
     });
 
     const data = await response.json();
 
-    if (data.result && data.result.points) {
-      // Filtriamo i risultati in JS cercando nel titolo, nel dominio o nella descrizione
-      const filtered = data.result.points.filter(pt => {
-        const payload = pt.payload || {};
-        const title = (payload.title || "").toLowerCase();
-        const domain = (payload.domain || "").toLowerCase();
-        const desc = (payload.description || "").toLowerCase();
-        const url = (payload.url || "").toLowerCase();
+    if (!data.result || !data.result.points) {
+      return res.status(200).json({ result: { points: [] } });
+    }
 
-        return title.includes(q) || domain.includes(q) || desc.includes(q) || url.includes(q);
-      });
+    const allPoints = data.result.points;
 
-      // Paginazione manuale sui risultati filtrati
-      const paginatedPoints = filtered.slice(offset, offset + limit);
-
+    // Se la query è vuota, restituiamo direttamente i primi risultati
+    if (!q) {
+      const paginatedPoints = allPoints.slice(offset, offset + limit);
       return res.status(200).json({
         result: {
           points: paginatedPoints,
-          total: filtered.length
+          total: allPoints.length
         }
       });
     }
 
-    return res.status(200).json({ result: { points: [] } });
+    // 2. Separiamo le parole della ricerca (es. "ciao mondo" -> ["ciao", "mondo"])
+    const terms = q.split(/\s+/).filter(Boolean);
+
+    // 3. Calcoliamo un punteggio di pertinenza per ogni pagina
+    const scoredPoints = allPoints.map(pt => {
+      const payload = pt.payload || {};
+      const title = (payload.title || "").toLowerCase();
+      const domain = (payload.domain || "").toLowerCase();
+      const desc = (payload.description || "").toLowerCase();
+      const url = (payload.url || "").toLowerCase();
+
+      let score = 0;
+
+      terms.forEach(term => {
+        // Corrispondenza nell'URL o dominio (peso altissimo)
+        if (domain.includes(term)) score += 10;
+        if (url.includes(term)) score += 8;
+
+        // Corrispondenza nel Titolo (peso alto)
+        if (title.includes(term)) score += 5;
+
+        // Corrispondenza nella Descrizione/Testo (peso medio)
+        if (desc.includes(term)) score += 2;
+      });
+
+      return { point: pt, score };
+    });
+
+    // 4. Ordiniamo i risultati dal più pertinente al meno pertinente
+    let filteredResults = scoredPoints
+      .filter(item => item.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .map(item => item.point);
+
+    // 5. SE NON TROVA NESSUN RISULTATO ESATTO (es. con la parola "ciao"):
+    // Invece di mostrare "Nessun risultato", restituisce le pagine del database come fa un motore di ricerca
+    if (filteredResults.length === 0) {
+      filteredResults = allPoints;
+    }
+
+    // Paginazione dei risultati finali
+    const paginatedPoints = filteredResults.slice(offset, offset + limit);
+
+    return res.status(200).json({
+      result: {
+        points: paginatedPoints,
+        total: filteredResults.length
+      }
+    });
 
   } catch (error) {
     return res.status(500).json({ error: 'Errore nel recupero dei dati' });
