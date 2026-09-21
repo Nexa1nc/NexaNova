@@ -1,242 +1,163 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NexaNova — Motore di Ricerca Web</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg-color: #090d16;
-      --card-bg: #111827;
-      --card-border: #1f293d;
-      --text-main: #f3f4f6;
-      --text-muted: #9ca3af;
-      --accent: #38bdf8;
-      --accent-hover: #0284c7;
-      --success: #10b981;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexaNova Search</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --accent: #38bdf8;
+            --border: #334155;
+        }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: var(--bg-color);
-      color: var(--text-main);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 40px 20px;
-    }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
 
-    .container {
-      width: 100%;
-      max-width: 760px;
-    }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
 
-    header {
-      text-align: center;
-      margin-bottom: 35px;
-    }
+        .logo {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--accent);
+            letter-spacing: -1px;
+        }
 
-    .logo {
-      font-size: 3rem;
-      font-weight: 700;
-      letter-spacing: -1px;
-      background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 6px;
-    }
+        .search-container {
+            width: 100%;
+            max-width: 650px;
+            margin-bottom: 25px;
+        }
 
-    .subtitle {
-      font-size: 0.95rem;
-      color: var(--text-muted);
-    }
+        .search-box {
+            display: flex;
+            gap: 10px;
+        }
 
-    .search-box {
-      display: flex;
-      gap: 10px;
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      padding: 8px;
-      border-radius: 12px;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
+        input[type="text"] {
+            flex: 1;
+            padding: 14px 20px;
+            font-size: 1rem;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-main);
+            outline: none;
+        }
 
-    .search-box:focus-within {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
-    }
+        input[type="text"]:focus {
+            border-color: var(--accent);
+        }
 
-    .search-input {
-      flex: 1;
-      background: transparent;
-      border: none;
-      outline: none;
-      padding: 12px 16px;
-      font-size: 1.05rem;
-      color: var(--text-main);
-    }
+        button {
+            padding: 14px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            background-color: #0284c7;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
 
-    .search-input::placeholder {
-      color: var(--text-muted);
-    }
+        button:hover {
+            background-color: #0369a1;
+        }
 
-    .search-btn {
-      background: var(--accent);
-      color: #000;
-      border: none;
-      font-weight: 600;
-      font-size: 1rem;
-      padding: 12px 24px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
+        .status-bar {
+            font-size: 0.88rem;
+            color: var(--text-sub);
+            margin-bottom: 20px;
+            min-height: 20px;
+        }
 
-    .search-btn:hover {
-      background: var(--accent-hover);
-      color: #fff;
-    }
+        .results {
+            width: 100%;
+            max-width: 650px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
 
-    .status-bar {
-      margin-top: 20px;
-      margin-bottom: 25px;
-      font-size: 0.88rem;
-      color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      min-height: 24px;
-    }
+        .result-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 18px;
+        }
 
-    .spinner {
-      width: 16px;
-      height: 16px;
-      border: 2px solid var(--card-border);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      display: none;
-    }
+        .result-card a {
+            font-size: 1.15rem;
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+        }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
+        .result-card a:hover {
+            text-decoration: underline;
+        }
 
-    .results-list {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
+        .result-card .url {
+            font-size: 0.85rem;
+            color: #10b981;
+            margin: 4px 0 8px 0;
+            word-break: break-all;
+        }
 
-    .result-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 20px;
-      transition: transform 0.15s, border-color 0.15s;
-    }
+        .result-card p {
+            font-size: 0.95rem;
+            color: #cbd5e1;
+            line-height: 1.4;
+        }
 
-    .result-card:hover {
-      border-color: #374151;
-      transform: translateY(-1px);
-    }
-
-    .result-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 6px;
-    }
-
-    .result-title {
-      font-size: 1.15rem;
-      font-weight: 600;
-      color: var(--accent);
-      text-decoration: none;
-      line-height: 1.3;
-    }
-
-    .result-title:hover {
-      text-decoration: underline;
-    }
-
-    .result-url {
-      font-size: 0.82rem;
-      color: var(--success);
-      margin-bottom: 10px;
-      word-break: break-all;
-    }
-
-    .result-snippet {
-      font-size: 0.93rem;
-      color: #d1d5db;
-      line-height: 1.5;
-    }
-
-    .provider-badge {
-      display: inline-block;
-      font-size: 0.72rem;
-      font-weight: 500;
-      background: #1e293b;
-      color: var(--accent);
-      border: 1px solid var(--card-border);
-      padding: 3px 8px;
-      border-radius: 6px;
-      margin-top: 12px;
-    }
-
-    footer {
-      margin-top: auto;
-      padding-top: 40px;
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      text-align: center;
-    }
-  </style>
+        .badge {
+            display: inline-block;
+            font-size: 0.75rem;
+            background: #334155;
+            color: var(--accent);
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+    </style>
 </head>
 <body>
 
-  <div class="container">
-    <header>
-      <div class="logo">NexaNova</div>
-      <div class="subtitle">Motore di Ricerca Web Veloce & Senza Limiti</div>
-    </header>
-
-    <form class="search-box" id="search-form">
-      <input 
-        type="text" 
-        id="search-input" 
-        class="search-input" 
-        placeholder="Cerca su internet o digita un URL..." 
-        autocomplete="off"
-        required 
-      />
-      <button type="submit" class="search-btn">Cerca</button>
-    </form>
-
-    <div class="status-bar">
-      <div class="spinner" id="spinner"></div>
-      <span id="status-text"></span>
+    <div class="header">
+        <div class="logo">NexaNova</div>
     </div>
 
-    <main class="results-list" id="results"></main>
-  </div>
+    <div class="search-container">
+        <form class="search-box" id="search-form">
+            <input type="text" id="search-input" placeholder="Cerca su NexaNova..." required>
+            <button type="submit">Cerca</button>
+        </form>
+    </div>
 
-  <footer>
-    NexaNova Search — Powered by Hybrid Multi-Engine Fallback
-  </footer>
+    <div class="status-bar" id="status-text"></div>
 
-  <script src="script.js"></script>
+    <div class="results" id="results"></div>
+
+    <script src="script.js"></script>
 </body>
 </html>
