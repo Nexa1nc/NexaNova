@@ -49,7 +49,6 @@
     .result-item { margin-bottom: 28px; position: relative; padding: 20px; background: rgba(255,255,255,0.4); border-radius: 4px; transition: transform 0.2s ease; }
     .result-item:hover { transform: translateX(8px); }
     
-    /* URL e Badge di verifica */
     .url-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
     .res-url { font-size: 0.7rem; color: rgba(17,17,17,0.5); word-break: break-all; }
     .verified-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.65rem; color: #16a34a; font-weight: 700; background: rgba(22, 163, 74, 0.1); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(22, 163, 74, 0.2); }
@@ -114,8 +113,8 @@
   <footer>Created By Mattia Ristori</footer>
 
   <script>
-    // ⚠️ SOSTITUISCI QUESTO CON IL TUO URL DI RENDER!
-    const PROXY_URL = 'https://nexanova-proxy.onrender.com';
+    // URL Corretto con l'endpoint completo per il Proxy su Render
+    const PROXY_URL = 'https://nexanova-proxy.onrender.com/search?q=';
 
     let currentPage = 1;
     let currentQuery = "";
@@ -147,26 +146,43 @@
       list.innerHTML = `
         <p class="results-label">
           Caricamento in corso da NexaNova Proxy Server...<br/>
-          <span style="font-size:0.6rem; opacity:0.7;">(Se il server era in pausa, impiegherà ~15 secondi per il primo avvio)</span>
+          <span style="font-size:0.65rem; opacity:0.75; display:inline-block; margin-top:6px;">
+            (Se il server era in standby, potrebbe richiedere fino a 30 secondi per avviarsi)
+          </span>
         </p>`;
       document.body.classList.add('results-active');
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
       try {
-        const response = await fetch(PROXY_URL + encodeURIComponent(query));
+        const targetUrl = PROXY_URL + encodeURIComponent(query);
+        const response = await fetch(targetUrl);
+
+        if (!response.ok) {
+          throw new Error(`Risposta server non valida: ${response.status}`);
+        }
+
         const data = await response.json();
 
         if (data.results && data.results.length > 0) {
           allFetchedResults = data.results;
           renderPage();
         } else {
-          list.innerHTML = `<p class="results-label">Nessun risultato trovato per "${query}". Prova con un'altra parola.</p>`;
+          list.innerHTML = `<p class="results-label">Nessun risultato trovato per "${query}". Prova con un'altra ricerca.</p>`;
           document.getElementById('nextBtn').disabled = true;
           document.getElementById('prevBtn').disabled = true;
         }
       } catch (error) {
         console.error("Errore di connessione al Proxy:", error);
-        list.innerHTML = `<p class="results-label" style="color: red;">Errore di connessione al server Proxy su Render. Verifica l'URL.</p>`;
+        list.innerHTML = `
+          <div class="result-item" style="border: 1px solid rgba(239,68,68,0.3); background: rgba(239,68,68,0.05);">
+            <p class="results-label" style="color: #ef4444; border:none; margin:0 0 8px 0;">Errore di connessione al server Proxy su Render.</p>
+            <p class="res-desc" style="font-size:0.8rem;">
+              • Verifica che l'app su Render sia attiva.<br/>
+              • Controlla nei log di Render di aver abilitato CORS nel server backend (CORS middleware).
+            </p>
+          </div>`;
+        document.getElementById('nextBtn').disabled = true;
+        document.getElementById('prevBtn').disabled = true;
       }
     }
 
