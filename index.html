@@ -137,7 +137,6 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // --- FUNZIONE DI RICERCA A 3 LIVELLI CON FALLBACK E TIMER ---
     async function showResults(query, page) {
       const list = document.getElementById('resultsList');
       list.innerHTML = `<p class="results-label">Ricerca in corso su NexaNova...</p>`;
@@ -147,37 +146,54 @@
       const startTime = performance.now();
       let resultsFound = [];
 
-      // --- LIVELLO 1: SearXNG (Meta-Search) ---
+      // --- LIVELLO 1: DuckDuckGo Web Scraping via AllOrigins Proxy ---
       try {
-        const searxUrl = `https://searx.be/search?q=${encodeURIComponent(query)}&format=json`;
+        const ddgUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(ddgUrl)}`;
+        
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3500);
+        const timeoutId = setTimeout(() => controller.abort(), 4500);
 
-        const res = await fetch(searxUrl, { signal: controller.signal });
+        const res = await fetch(proxyUrl, { signal: controller.signal });
         clearTimeout(timeoutId);
 
         if (res.ok) {
           const data = await res.json();
-          if (data.results && data.results.length > 0) {
-            resultsFound = data.results.map(r => ({
-              url: r.url,
-              title: r.title,
-              description: r.content || "Nessuna descrizione disponibile."
-            }));
-          }
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(data.contents, 'text/html');
+          const items = doc.querySelectorAll('.result__body');
+
+          items.forEach(el => {
+            const titleEl = el.querySelector('.result__title a');
+            const snippetEl = el.querySelector('.result__snippet');
+
+            if (titleEl) {
+              let cleanUrl = titleEl.href;
+              if (cleanUrl.includes('uddg=')) {
+                cleanUrl = decodeURIComponent(cleanUrl.split('uddg=')[1].split('&')[0]);
+              }
+
+              resultsFound.push({
+                title: titleEl.textContent.trim(),
+                url: cleanUrl,
+                description: snippetEl ? snippetEl.textContent.trim() : "Nessuna descrizione disponibile."
+              });
+            }
+          });
         }
       } catch (err) {
-        console.warn("Livello 1 (SearXNG) in fallback...");
+        console.warn("Livello 1 (DuckDuckGo Live) in fallback...");
       }
 
-      // --- LIVELLO 2: Fallback DuckDuckGo (Vercel API) ---
+      // --- LIVELLO 2: SearXNG (Istanza pubblica alternativa) ---
       if (resultsFound.length === 0) {
         try {
-          const ddgRes = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-          if (ddgRes.ok) {
-            const ddgData = await ddgRes.json();
-            if (ddgData.results && ddgData.results.length > 0) {
-              resultsFound = ddgData.results.map(r => ({
+          const searxUrl = `https://searx.priv.at/search?q=${encodeURIComponent(query)}&format=json`;
+          const res = await fetch(searxUrl);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.results && data.results.length > 0) {
+              resultsFound = data.results.map(r => ({
                 url: r.url,
                 title: r.title,
                 description: r.content || "Nessuna descrizione disponibile."
@@ -185,11 +201,11 @@
             }
           }
         } catch (err) {
-          console.warn("Livello 2 (DuckDuckGo) in fallback...");
+          console.warn("Livello 2 (SearXNG) in fallback...");
         }
       }
 
-      // --- LIVELLO 3: Fallback Wikipedia API ---
+      // --- LIVELLO 3: Wikipedia API (Ultima spiaggia) ---
       if (resultsFound.length === 0) {
         try {
           const wikiUrl = `https://it.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*`;
@@ -205,7 +221,7 @@
             }
           }
         } catch (err) {
-          console.error("Livello 3 fallito.");
+          console.error("Tutti i motori hanno fallito.");
         }
       }
 
