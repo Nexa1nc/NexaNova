@@ -3,263 +3,321 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NexaNova Search</title>
+  <title>NexaNova Engine</title>
   <style>
-    :root {
-      --bg-color: #0f172a;
-      --card-bg: #1e293b;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --accent: #38bdf8;
-      --accent-hover: #0284c7;
-      --border-color: #334155;
-    }
-
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 
     body {
-      background-color: var(--bg-color);
-      color: var(--text-main);
+      background-color: #0b0f19;
+      color: #e2e8f0;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 2rem 1rem;
+      justify-content: center;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      padding: 20px;
+      overflow-x: hidden;
     }
 
-    header {
-      margin-top: 5vh;
-      text-align: center;
-      transition: all 0.3s ease;
+    /* Stato iniziale (Home Centrata) */
+    .search-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 680px;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 10;
     }
 
-    h1.brand {
-      font-size: 3rem;
+    .brand {
+      font-size: 3.5rem;
       font-weight: 800;
-      background: linear-gradient(135deg, #38bdf8, #818cf8);
+      background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      margin-bottom: 1.5rem;
+      margin-bottom: 25px;
       letter-spacing: -1px;
+      transition: all 0.5s ease;
+      text-shadow: 0 10px 30px rgba(56, 189, 248, 0.2);
     }
 
-    .search-container {
+    .search-box {
       width: 100%;
-      max-width: 650px;
+      position: relative;
       display: flex;
-      gap: 0.5rem;
-      margin-bottom: 2rem;
+      align-items: center;
     }
 
     .search-input {
-      flex: 1;
-      padding: 0.85rem 1.25rem;
-      font-size: 1rem;
-      border-radius: 12px;
-      border: 1px solid var(--border-color);
-      background-color: var(--card-bg);
-      color: var(--text-main);
+      width: 100%;
+      padding: 16px 24px;
+      padding-right: 120px;
+      font-size: 1.1rem;
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      color: #ffffff;
       outline: none;
-      transition: border-color 0.2s ease;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      transition: all 0.3s ease;
     }
 
     .search-input:focus {
-      border-color: var(--accent);
+      border-color: #38bdf8;
+      box-shadow: 0 0 25px rgba(56, 189, 248, 0.3);
+      background: rgba(30, 41, 59, 0.9);
     }
 
-    .search-button {
-      padding: 0.85rem 1.5rem;
-      font-size: 1rem;
-      font-weight: 600;
-      border-radius: 12px;
+    .search-btn {
+      position: absolute;
+      right: 8px;
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #38bdf8, #6366f1);
       border: none;
-      background-color: var(--accent);
-      color: #000;
+      border-radius: 12px;
+      color: #ffffff;
+      font-weight: 600;
       cursor: pointer;
-      transition: background-color 0.2s ease;
+      transition: all 0.3s ease;
     }
 
-    .search-button:hover {
-      background-color: var(--accent-hover);
-      color: #fff;
+    .search-btn:hover {
+      opacity: 0.9;
+      transform: scale(1.02);
     }
 
-    .status-msg {
-      font-size: 0.95rem;
-      color: var(--text-muted);
-      margin-bottom: 1.5rem;
-      text-align: center;
+    /* Layout attivo (Spostamento in alto) */
+    body.results-active {
+      justify-content: flex-start;
+      padding-top: 40px;
     }
 
+    body.results-active .search-wrapper {
+      max-width: 760px;
+      margin-bottom: 30px;
+    }
+
+    body.results-active .brand {
+      font-size: 2rem;
+      margin-bottom: 15px;
+    }
+
+    /* Contenitore e Card Risultati */
     .results-container {
       width: 100%;
-      max-width: 750px;
+      max-width: 760px;
       display: flex;
       flex-direction: column;
-      gap: 1.25rem;
+      gap: 16px;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeInUp 0.5s forwards ease-out;
+    }
+
+    .results-label {
+      font-size: 0.95rem;
+      color: #94a3b8;
+      margin-bottom: 8px;
     }
 
     .result-card {
-      background-color: var(--card-bg);
-      padding: 1.25rem;
-      border-radius: 12px;
-      border: 1px solid var(--border-color);
-      transition: transform 0.2s ease;
+      background: rgba(30, 41, 59, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 14px;
+      padding: 18px 22px;
+      backdrop-filter: blur(8px);
+      transition: all 0.3s ease;
+      animation: cardAppear 0.4s ease forwards;
     }
 
     .result-card:hover {
-      transform: translateY(-2px);
+      transform: translateY(-3px);
+      border-color: rgba(56, 189, 248, 0.3);
+      background: rgba(30, 41, 59, 0.8);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
     }
 
     .result-title {
-      font-size: 1.2rem;
+      font-size: 1.25rem;
       font-weight: 600;
-      margin-bottom: 0.3rem;
+      margin-bottom: 4px;
     }
 
     .result-title a {
-      color: var(--accent);
+      color: #38bdf8;
       text-decoration: none;
+      transition: color 0.2s ease;
     }
 
     .result-title a:hover {
+      color: #818cf8;
       text-decoration: underline;
     }
 
     .result-url {
       font-size: 0.85rem;
-      color: #10b981;
-      margin-bottom: 0.5rem;
+      color: #34d399;
+      margin-bottom: 8px;
       word-break: break-all;
     }
 
     .result-snippet {
       font-size: 0.95rem;
-      color: var(--text-muted);
+      color: #cbd5e1;
       line-height: 1.5;
     }
 
+    /* Paginazione */
     .pagination {
       display: flex;
       justify-content: center;
-      gap: 0.5rem;
-      margin-top: 2rem;
+      gap: 8px;
+      margin-top: 30px;
+      margin-bottom: 40px;
     }
 
     .page-btn {
-      padding: 0.5rem 1rem;
-      background-color: var(--card-bg);
-      border: 1px solid var(--border-color);
-      color: var(--text-main);
-      border-radius: 8px;
+      padding: 8px 16px;
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #e2e8f0;
+      border-radius: 10px;
       cursor: pointer;
+      transition: all 0.2s ease;
     }
 
-    .page-btn.active {
-      background-color: var(--accent);
-      color: #000;
+    .page-btn:hover, .page-btn.active {
+      background: #38bdf8;
+      color: #0b0f19;
       font-weight: bold;
+      border-color: #38bdf8;
     }
 
-    .spinner {
-      border: 4px solid rgba(255, 255, 255, 0.1);
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      border-left-color: var(--accent);
-      animation: spin 1s linear infinite;
-      margin: 2rem auto;
-      display: none;
+    /* Animazioni Keyframes */
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+    @keyframes cardAppear {
+      from {
+        opacity: 0;
+        transform: translateY(15px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
   </style>
 </head>
 <body>
 
-  <header>
+  <div class="search-wrapper">
     <h1 class="brand">NexaNova</h1>
-  </header>
-
-  <div class="search-container">
-    <input type="text" id="searchInput" class="search-input" placeholder="Cerca sul Web..." onkeydown="if(event.key==='Enter') search();">
-    <button class="search-button" onclick="search()">Cerca</button>
+    <div class="search-box">
+      <input type="text" id="searchInput" class="search-input" placeholder="Cerca sul web..." onkeydown="if(event.key==='Enter') triggerSearch();">
+      <button class="search-btn" onclick="triggerSearch()">Cerca</button>
+    </div>
   </div>
 
-  <div id="spinner" class="spinner"></div>
-  <div id="statusMsg" class="status-msg"></div>
-  <div id="resultsContainer" class="results-container"></div>
-  <div id="pagination" class="pagination"></div>
+  <div id="resultsContainer" class="results-container">
+    <div id="resultsList"></div>
+    <div id="pagination" class="pagination"></div>
+  </div>
 
   <script>
     // ⚠️ SOSTITUISCI CON L'URL DEL TUO PROXY SU RENDER!
     const PROXY_URL = 'https://nexanova-proxy.onrender.com';
 
-    let allResults = [];
+    let cachedResults = [];
     let currentPage = 1;
     const resultsPerPage = 5;
 
-    async function search() {
-      const query = document.getElementById('searchInput').value.trim();
-      if (!query) return;
+    function triggerSearch() {
+      const input = document.getElementById('searchInput');
+      const query = input.value.trim();
+      if (query) {
+        showResults(query);
+      }
+    }
 
-      const spinner = document.getElementById('spinner');
-      const statusMsg = document.getElementById('statusMsg');
-      const container = document.getElementById('resultsContainer');
+    async function showResults(query) {
+      const list = document.getElementById('resultsList');
       const pagination = document.getElementById('pagination');
+      if (!list) return;
 
-      // Reset interfaccia
-      container.innerHTML = '';
+      // Attiva l'animazione spostando la barra in alto
+      document.body.classList.add('results-active');
       pagination.innerHTML = '';
-      spinner.style.display = 'block';
-      statusMsg.innerText = 'Ricerca in corso tramite NexaNova Proxy Server...\n(Se il server era in pausa, potrebbe impiegare 15-20 secondi per il primo avvio)';
+      
+      // Messaggio di caricamento fluido
+      list.innerHTML = `
+        <div style="text-align: center; padding: 40px 20px; color: #94a3b8;">
+          <p class="results-label" style="font-size: 1.1rem;">Ricerca in corso su NexaNova Engine...</p>
+          <p style="font-size: 0.85rem; margin-top: 10px; opacity: 0.6;">
+            (Se il server era in pausa, l'avvio potrebbe richiedere ~15-20 secondi)
+          </p>
+        </div>
+      `;
 
       try {
         const response = await fetch(PROXY_URL + encodeURIComponent(query));
         const data = await response.json();
 
-        spinner.style.display = 'none';
-
         if (data.results && data.results.length > 0) {
-          allResults = data.results;
+          cachedResults = data.results;
           currentPage = 1;
-          statusMsg.innerText = `Trovati ${allResults.length} risultati per "${query}"`;
-          renderResults();
+          renderCurrentPage(query);
         } else {
-          statusMsg.innerText = `Nessun risultato trovato per "${query}".`;
+          list.innerHTML = `<p class="results-label" style="text-align: center; padding: 20px;">Nessun risultato trovato per "${query}".</p>`;
         }
-      } catch (error) {
-        console.error('Errore durante la ricerca:', error);
-        spinner.style.display = 'none';
-        statusMsg.innerText = 'Errore durante la connessione al server Proxy. Assicurati che l\'URL su Render sia corretto.';
+      } catch (err) {
+        console.error("Errore durante la ricerca:", err);
+        list.innerHTML = `
+          <p class="results-label" style="color: #f87171; text-align: center; padding: 20px;">
+            Errore di connessione al Proxy NexaNova. Controlla che l'URL di Render sia inserito correttamente.
+          </p>
+        `;
       }
     }
 
-    function renderResults() {
-      const container = document.getElementById('resultsContainer');
-      container.innerHTML = '';
+    function renderCurrentPage(query = '') {
+      const list = document.getElementById('resultsList');
+      list.innerHTML = '';
+
+      if (query) {
+        const countLabel = document.createElement('p');
+        countLabel.className = 'results-label';
+        countLabel.style.marginBottom = '16px';
+        countLabel.innerText = `Trovati ${cachedResults.length} risultati per "${query}"`;
+        list.appendChild(countLabel);
+      }
 
       const startIndex = (currentPage - 1) * resultsPerPage;
       const endIndex = startIndex + resultsPerPage;
-      const pageResults = allResults.slice(startIndex, endIndex);
+      const pageResults = cachedResults.slice(startIndex, endIndex);
 
-      pageResults.forEach(item => {
+      pageResults.forEach((item, index) => {
         const card = document.createElement('div');
         card.className = 'result-card';
+        card.style.animationDelay = `${index * 0.08}s`; // Effetto cascata per le card
         card.innerHTML = `
           <div class="result-title"><a href="${item.url}" target="_blank" rel="noopener">${item.title}</a></div>
           <div class="result-url">${item.url}</div>
           <div class="result-snippet">${item.description}</div>
         `;
-        container.appendChild(card);
+        list.appendChild(card);
       });
 
       renderPagination();
@@ -269,7 +327,7 @@
       const pagination = document.getElementById('pagination');
       pagination.innerHTML = '';
 
-      const totalPages = Math.ceil(allResults.length / resultsPerPage);
+      const totalPages = Math.ceil(cachedResults.length / resultsPerPage);
       if (totalPages <= 1) return;
 
       for (let i = 1; i <= totalPages; i++) {
@@ -278,7 +336,7 @@
         btn.innerText = i;
         btn.onclick = () => {
           currentPage = i;
-          renderResults();
+          renderCurrentPage();
           window.scrollTo({ top: 0, behavior: 'smooth' });
         };
         pagination.appendChild(btn);
