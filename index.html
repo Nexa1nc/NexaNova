@@ -49,7 +49,6 @@
     .result-item { margin-bottom: 28px; position: relative; padding: 20px; background: rgba(255,255,255,0.4); border-radius: 4px; transition: transform 0.2s ease; }
     .result-item:hover { transform: translateX(8px); }
     
-    /* URL e Badge di verifica */
     .url-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
     .res-url { font-size: 0.7rem; color: rgba(17,17,17,0.5); word-break: break-all; }
     .verified-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.65rem; color: #16a34a; font-weight: 700; background: rgba(22, 163, 74, 0.1); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(22, 163, 74, 0.2); }
@@ -116,6 +115,7 @@
   <script>
     let currentPage = 1;
     let currentQuery = "";
+    let cachedResults = [];
 
     function handleSearch(e, type) {
       e.preventDefault();
@@ -133,59 +133,127 @@
     function changePage(direction) {
       currentPage += direction;
       if (currentPage < 1) currentPage = 1;
-      showResults(currentQuery, currentPage);
+      renderCurrentPage();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+    // --- FUNZIONE DI RICERCA A 3 LIVELLI CON FALLBACK E TIMER ---
     async function showResults(query, page) {
       const list = document.getElementById('resultsList');
-      list.innerHTML = `<p class="results-label">Caricamento in corso...</p>`;
+      list.innerHTML = `<p class="results-label">Ricerca in corso su NexaNova...</p>`;
       document.body.classList.add('results-active');
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
+      const startTime = performance.now();
+      let resultsFound = [];
+
+      // --- LIVELLO 1: SearXNG (Meta-Search) ---
       try {
-        const response = await fetch("/api/search", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query: query, page: page, limit: 10 })
-        });
-        const data = await response.json();
+        const searxUrl = `https://searx.be/search?q=${encodeURIComponent(query)}&format=json`;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3500);
 
-        if (data.result && data.result.points && data.result.points.length > 0) {
-          list.innerHTML = `<p class="results-label">Pagina ${page} - Risultati per: ${query}</p>`;
-          
-          data.result.points.forEach(point => {
-            const url = point.payload.url || "#";
-            const title = point.payload.title || url;
-            // Pulizia descrizione per rimuovere la dicitura fissa
-            let desc = point.payload.description || "Nessuna descrizione disponibile.";
-            desc = desc.replace("Sito web verificato", "").replace("Clicca per accedere direttamente.", "").trim();
+        const res = await fetch(searxUrl, { signal: controller.signal });
+        clearTimeout(timeoutId);
 
-            list.innerHTML += `
-              <div class="result-item">
-                <div class="url-row">
-                  <span class="verified-badge">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-                    Sicuro
-                  </span>
-                  <span class="res-url">${url}</span>
-                </div>
-                <a href="${url}" target="_blank" rel="noopener noreferrer" class="res-title">${title}</a>
-                <p class="res-desc">${desc}</p>
-              </div>
-            `;
-          });
-
-          document.getElementById('pageIndicator').textContent = `Pagina ${page}`;
-          document.getElementById('prevBtn').disabled = (page === 1);
-          document.getElementById('nextBtn').disabled = (data.result.points.length < 10);
-        } else {
-          list.innerHTML = `<p class="results-label">Nessun risultato trovato per "${query}". Prova con un'altra parola.</p>`;
-          document.getElementById('nextBtn').disabled = true;
+        if (res.ok) {
+          const data = await res.json();
+          if (data.results && data.results.length > 0) {
+            resultsFound = data.results.map(r => ({
+              url: r.url,
+              title: r.title,
+              description: r.content || "Nessuna descrizione disponibile."
+            }));
+          }
         }
-      } catch (error) {
-        console.error(error);
-        list.innerHTML = `<p class="results-label" style="color: red;">Errore nel caricamento dei dati.</p>`;
+      } catch (err) {
+        console.warn("Livello 1 (SearXNG) in fallback...");
       }
+
+      // --- LIVELLO 2: Fallback DuckDuckGo (Vercel API) ---
+      if (resultsFound.length === 0) {
+        try {
+          const ddgRes = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+          if (ddgRes.ok) {
+            const ddgData = await ddgRes.json();
+            if (ddgData.results && ddgData.results.length > 0) {
+              resultsFound = ddgData.results.map(r => ({
+                url: r.url,
+                title: r.title,
+                description: r.content || "Nessuna descrizione disponibile."
+              }));
+            }
+          }
+        } catch (err) {
+          console.warn("Livello 2 (DuckDuckGo) in fallback...");
+        }
+      }
+
+      // --- LIVELLO 3: Fallback Wikipedia API ---
+      if (resultsFound.length === 0) {
+        try {
+          const wikiUrl = `https://it.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*`;
+          const wikiRes = await fetch(wikiUrl);
+          if (wikiRes.ok) {
+            const wikiData = await wikiRes.json();
+            if (wikiData.query && wikiData.query.search.length > 0) {
+              resultsFound = wikiData.query.search.map(item => ({
+                url: `https://it.wikipedia.org/wiki/${encodeURIComponent(item.title)}`,
+                title: item.title,
+                description: item.snippet.replace(/<[^>]+>/g, '') + '...'
+              }));
+            }
+          }
+        } catch (err) {
+          console.error("Livello 3 fallito.");
+        }
+      }
+
+      const elapsedTime = ((performance.now() - startTime) / 1000).toFixed(2);
+      cachedResults = resultsFound;
+
+      if (cachedResults.length > 0) {
+        renderCurrentPage(elapsedTime);
+      } else {
+        list.innerHTML = `<p class="results-label">Nessun risultato trovato per "${query}" (${elapsedTime}s). Prova con altre parole.</p>`;
+        document.getElementById('prevBtn').disabled = true;
+        document.getElementById('nextBtn').disabled = true;
+      }
+    }
+
+    function renderCurrentPage(elapsedTime = null) {
+      const list = document.getElementById('resultsList');
+      const pageSize = 10;
+      const startIndex = (currentPage - 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+      const pageItems = cachedResults.slice(startIndex, endIndex);
+
+      const timeText = elapsedTime ? ` in ${elapsedTime}s` : '';
+      list.innerHTML = `<p class="results-label">Pagina ${currentPage} - ${cachedResults.length} Risultati per: ${currentQuery}${timeText}</p>`;
+
+      pageItems.forEach(point => {
+        const url = point.url || "#";
+        const title = point.title || url;
+        let desc = point.description || "Nessuna descrizione disponibile.";
+
+        list.innerHTML += `
+          <div class="result-item">
+            <div class="url-row">
+              <span class="verified-badge">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                NexaNova Verified
+              </span>
+              <span class="res-url">${url}</span>
+            </div>
+            <a href="${url}" target="_blank" rel="noopener noreferrer" class="res-title">${title}</a>
+            <p class="res-desc">${desc}</p>
+          </div>
+        `;
+      });
+
+      document.getElementById('pageIndicator').textContent = `Pagina ${currentPage}`;
+      document.getElementById('prevBtn').disabled = (currentPage === 1);
+      document.getElementById('nextBtn').disabled = (endIndex >= cachedResults.length);
     }
 
     function goHome() {
