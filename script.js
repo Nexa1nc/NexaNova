@@ -10,18 +10,17 @@ form.addEventListener('submit', async (e) => {
   if (!query) return;
 
   resultsContainer.innerHTML = '';
-  spinner.style.display = 'block';
-  statusText.textContent = 'Ricerca in corso su NexaNova...';
+  if (spinner) spinner.style.display = 'block';
+  if (statusText) statusText.textContent = 'Ricerca in corso su NexaNova...';
 
-  // Avviamo il timer di ricerca
+  // Avviamo il timer di risposta
   const startTime = performance.now();
 
   // --- LIVELLO 1: Ricerca Primaria ---
   try {
     const searxUrl = `https://searx.be/search?q=${encodeURIComponent(query)}&format=json`;
-    
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3500); // Timeout 3.5s
+    const timeoutId = setTimeout(() => controller.abort(), 3500);
 
     const res = await fetch(searxUrl, { signal: controller.signal });
     clearTimeout(timeoutId);
@@ -35,14 +34,14 @@ form.addEventListener('submit', async (e) => {
       }
     }
   } catch (err) {
-    console.warn('Livello 1 non disponibile, attivazione backup 1...');
+    console.warn('Backup 1 in corso...');
   }
 
   // --- LIVELLO 2: Ricerca di Backup 1 ---
   try {
     const ddgUrl = `/api/search?q=${encodeURIComponent(query)}`;
-    
     const res = await fetch(ddgUrl);
+    
     if (res.ok) {
       const data = await res.json();
       if (data.results && data.results.length > 0) {
@@ -52,14 +51,14 @@ form.addEventListener('submit', async (e) => {
       }
     }
   } catch (err) {
-    console.warn('Livello 2 non disponibile, attivazione backup 2...');
+    console.warn('Backup 2 in corso...');
   }
 
   // --- LIVELLO 3: Ricerca di Backup 2 ---
   try {
     const wikiUrl = `https://it.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*`;
-    
     const res = await fetch(wikiUrl);
+    
     if (res.ok) {
       const data = await res.json();
       if (data.query && data.query.search.length > 0) {
@@ -75,18 +74,17 @@ form.addEventListener('submit', async (e) => {
       }
     }
   } catch (err) {
-    console.error('Errore nell\'esecuzione della ricerca.');
+    console.error('Errore durante la ricerca.');
   }
 
-  // Se nessun risultato viene trovato
-  spinner.style.display = 'none';
+  if (spinner) spinner.style.display = 'none';
   const elapsedTime = ((performance.now() - startTime) / 1000).toFixed(2);
-  statusText.textContent = `Nessun risultato trovato (${elapsedTime}s). Prova con parole chiave diverse.`;
+  if (statusText) statusText.textContent = `Nessun risultato trovato (${elapsedTime}s). Prova con altre parole.`;
 });
 
 function renderResults(items, seconds) {
-  spinner.style.display = 'none';
-  statusText.textContent = `Trovati ${items.length} risultati su NexaNova in ${seconds} secondi`;
+  if (spinner) spinner.style.display = 'none';
+  if (statusText) statusText.textContent = `Trovati ${items.length} risultati su NexaNova in ${seconds} secondi`;
   resultsContainer.innerHTML = '';
 
   items.forEach(item => {
@@ -115,7 +113,7 @@ function renderResults(items, seconds) {
 
     const badge = document.createElement('span');
     badge.className = 'provider-badge';
-    badge.textContent = 'NexaNova Search';
+    badge.textContent = 'NexaNova Verified';
 
     card.appendChild(header);
     card.appendChild(urlDiv);
