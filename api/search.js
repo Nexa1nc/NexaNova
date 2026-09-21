@@ -1,90 +1,63 @@
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  // Impostazione CORS per consentire chiamate dal frontend
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
 
-  const { query = "", page = 1, limit = 10 } = req.body || {};
-  const offset = (page - 1) * limit;
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
 
-  const QDRANT_URL = process.env.QDRANT_URL;
-  const QDRANT_API_KEY = process.env.QDRANT_API_KEY;
+  const { q } = req.query;
+  if (!q) {
+    return res.status(400).json({ error: 'Parametro di ricerca "q" mancante.' });
+  }
 
   try {
-    const q = query.trim().toLowerCase();
-
-    // 1. Scarichiamo i punti presenti nel database
-    const response = await fetch(`${QDRANT_URL}/collections/global_web/points/scroll`, {
-      method: "POST",
+    // Richiesta a DuckDuckGo Lite HTML
+    const response = await fetch(`https://lite.duckduckgo.com/lite/`, {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        "api-key": QDRANT_API_KEY
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
       },
-      body: JSON.stringify({
-        limit: 300,
-        with_payload: true
-      })
+      body: `q=${encodeURIComponent(q)}`
     });
 
-    const data = await response.json();
+    const html = await response.text();
 
-    if (!data.result || !data.result.points) {
-      return res.status(200).json({ result: { points: [] } });
-    }
+    // Regex per estrarre i link, titoli e frammenti di testo da DuckDuckGo Lite
+    const results = [];
+    const linkRegex = /<a[^>]+href="([^"]+)"[^>]*class="result-link"[^>]*>(.*?)<\/a>/gi;
+    const snippetRegex = /<td[^>]+class="result-snippet"[^>]*>(.*?)<\/td>/gi;
 
-    const allPoints = data.result.points;
-
-    // Se non c'è query, mostriamo i primi risultati
-    if (!q) {
-      return res.status(200).json({
-        result: {
-          points: allPoints.slice(offset, offset + limit),
-          total: allPoints.length
-        }
+    let matchLink;
+    const links = [];
+    while ((matchLink = linkRegex.exec(html)) !== null) {
+      links.push({
+        url: matchLink[1],
+        title: matchLink[2].replace(/<[^>]+>/g, '').trim()
       });
     }
 
-    const terms = q.split(/\s+/).filter(Boolean);
+    let matchSnippet;
+    const snippets = [];
+    while ((matchSnippet = snippetRegex.exec(html)) !== null) {
+      snippets.push(matchSnippet[1].replace(/<[^>]+>/g, '').trim());
+    }
 
-    // 2. Calcoliamo il punteggio di pertinenza per ciascun risultato
-    const scoredPoints = allPoints.map(pt => {
-      const payload = pt.payload || {};
-      const title = (payload.title || "").toLowerCase();
-      const domain = (payload.domain || "").toLowerCase();
-      const desc = (payload.description || "").toLowerCase();
-      const url = (payload.url || "").toLowerCase();
-
-      let score = 0;
-
-      terms.forEach(term => {
-        // Se c'è corrispondenza nell'URL o nel dominio, punteggio alto
-        if (domain.includes(term)) score += 100;
-        else if (url.includes(term)) score += 80;
-
-        // Se c'è corrispondenza nel titolo
-        if (title.includes(term)) score += 50;
-
-        // Se c'è corrispondenza nella descrizione
-        if (desc.includes(term)) score += 20;
+    for (let i = 0; i < links.length; i++) {
+      results.push({
+        title: links[i].title,
+        url: links[i].url,
+        content: snippets[i] || 'Nessuna descrizione disponibile.'
       });
+    }
 
-      return { point: pt, score };
-    });
-
-    // 3. Filtriamo solo chi ha un punteggio > 0 e ordiniamo dal più rilevante al meno rilevante
-    let filteredResults = scoredPoints
-      .filter(item => item.score > 0)
-      .sort((a, b) => b.score - a.score)
-      .map(item => item.point);
-
-    // 4. Paginazione dei risultati trovati
-    const paginatedPoints = filteredResults.slice(offset, offset + limit);
-
-    return res.status(200).json({
-      result: {
-        points: paginatedPoints,
-        total: filteredResults.length
-      }
-    });
-
+    return res.status(200).json({ results });
   } catch (error) {
-    return res.status(500).json({ error: 'Errore durante la ricerca' });
+    return res.status(500).json({ error: 'Errore durante la ricerca su DuckDuckGo.' });
   }
 }
