@@ -2,9 +2,8 @@ name: Auto Crawler NexaNova
 
 on:
   schedule:
-    # Fa girare il crawler ogni ora in automatico
     - cron: '0 * * * *'
-  workflow_dispatch: # Permette l'avvio manuale dalla scheda Actions
+  workflow_dispatch:
 
 jobs:
   crawl:
@@ -16,7 +15,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: '20' # <--- Portato a 20 per risolvere l'errore su Node.js
 
       - name: Installa dipendenze
         run: npm install
