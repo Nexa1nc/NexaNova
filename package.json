@@ -1,16 +1,15 @@
 {
-  "name": "nexanova-engine",
+  "name": "nexanova",
   "version": "1.0.0",
-  "private": true,
+  "type": "module",
+  "main": "crawler.js",
   "scripts": {
-    "start": "node api/search.js",
-    "crawl": "node crawler.js"
+    "start": "node crawler.js"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.500.0",
     "@libsql/client": "^0.6.0",
-    "axios": "^1.6.0",
+    "axios": "^1.6.8",
     "cheerio": "^1.0.0-rc.12",
-    "dotenv": "^16.4.0"
+    "dotenv": "^16.4.5"
   }
 }
