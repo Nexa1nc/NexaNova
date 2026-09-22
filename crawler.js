@@ -1,4 +1,4 @@
-import { createClient } from '@libsql/client';
+import { createClient } from '@libsql/client/http';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { URL } from 'url';
