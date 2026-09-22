@@ -39,19 +39,14 @@ function calculatePriority(urlString) {
     const parsed = new URL(urlString);
     const domain = parsed.hostname.toLowerCase();
 
-    // Priorità massima per Wikipedia
     if (domain.includes('wikipedia.org')) return 100;
-    
-    // Priorità alta per domini istituzionali / educational
     if (domain.endsWith('.gov') || domain.endsWith('.edu') || domain.endsWith('.edu.it')) return 50;
 
-    // Testate e siti autorevoli di riferimento
     const HIGH_AUTH = ['ansa.it', 'treccani.it', 'repubblica.it', 'corriere.it', 'github.com', 'stackoverflow.com'];
     if (HIGH_AUTH.some(d => domain.includes(d))) {
       priority += 30;
     }
 
-    // Premia le Home Page e i primi livelli
     const depth = parsed.pathname.split('/').filter(Boolean).length;
     if (depth === 0) priority += 20;
     else if (depth === 1) priority += 10;
@@ -86,7 +81,7 @@ async function crawlWikipediaApi(searchTerm) {
       if (insert.rows.length > 0) {
         const pageId = insert.rows[0].id;
         await db.execute({
-          sql: `INSERT INTO pages_fts (rowid, title, snippet) VALUES (?, ?, ?)`,
+          sql: `INSERT OR REPLACE INTO pages_fts (rowid, title, snippet) VALUES (?, ?, ?)`,
           args: [pageId, title, snippet]
         });
         console.log(`[WIKI OK] Indicizzato: ${title}`);
@@ -107,7 +102,6 @@ async function scrapeStandardWebpage(pageUrl) {
   const html = response.data;
   const $ = cheerio.load(html);
 
-  // Filtro Anti-Spazzatura sul contenuto (Scarta pagine troppo corte)
   const bodyText = $('body').text().replace(/\s+/g, ' ').trim();
   if (bodyText.length < 300) {
     console.log(`[SKIP] Pagina priva di testo sufficiente: ${pageUrl}`);
@@ -117,7 +111,6 @@ async function scrapeStandardWebpage(pageUrl) {
   const title = $('title').text().trim() || pageUrl;
   const snippet = $('meta[name="description"]').attr('content') || bodyText.substring(0, 200) + '...';
 
-  // Salvataggio nel Database
   const insert = await db.execute({
     sql: `INSERT OR IGNORE INTO pages (url, title, snippet) VALUES (?, ?, ?) RETURNING id`,
     args: [pageUrl, title, snippet]
@@ -126,13 +119,12 @@ async function scrapeStandardWebpage(pageUrl) {
   if (insert.rows.length > 0) {
     const pageId = insert.rows[0].id;
     await db.execute({
-      sql: `INSERT INTO pages_fts (rowid, title, snippet) VALUES (?, ?, ?)`,
+      sql: `INSERT OR REPLACE INTO pages_fts (rowid, title, snippet) VALUES (?, ?, ?)`,
       args: [pageId, title, snippet]
     });
     console.log(`[WEB OK] Indicizzato: ${title}`);
   }
 
-  // Estrazione nuovi Link e calcolo della priorità
   const links = [];
   $('a[href]').each((_, el) => {
     let href = $(el).attr('href');
@@ -149,7 +141,6 @@ async function scrapeStandardWebpage(pageUrl) {
     } catch (e) {}
   });
 
-  // Inserimento batch dei nuovi link nella coda
   for (let link of links) {
     await db.execute({
       sql: `INSERT OR IGNORE INTO crawl_queue (url, priority) VALUES (?, ?)`,
@@ -158,7 +149,7 @@ async function scrapeStandardWebpage(pageUrl) {
   }
 }
 
-// 5. Inizializzazione Tabelle DB
+// 5. Inizializzazione Tabelle DB (Esecuzione singola statement per evitare errori 400)
 async function initDb() {
   await db.execute(`
     CREATE TABLE IF NOT EXISTS pages (
@@ -167,16 +158,14 @@ async function initDb() {
       title TEXT,
       snippet TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
+    )
   `);
 
   await db.execute(`
     CREATE VIRTUAL TABLE IF NOT EXISTS pages_fts USING fts5(
       title,
-      snippet,
-      content='pages',
-      content_rowid='id'
-    );
+      snippet
+    )
   `);
 
   await db.execute(`
@@ -186,15 +175,15 @@ async function initDb() {
       priority INTEGER DEFAULT 1,
       status TEXT DEFAULT 'pending',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
+    )
   `);
 }
 
 // 6. Esecuzione Principale
 async function main() {
+  console.log("Inizializzazione Database...");
   await initDb();
 
-  // Estrae gli URL dalla coda in ordine di PRIORITÀ
   const queueResult = await db.execute({
     sql: `SELECT id, url FROM crawl_queue 
           WHERE status = 'pending' 
@@ -205,7 +194,6 @@ async function main() {
 
   let items = queueResult.rows;
 
-  // Se la coda è vuota, aggiungiamo dei seed iniziali ad alta priorità
   if (items.length === 0) {
     console.log("Coda vuota! Inserimento dei Seed URL iniziali...");
     const seeds = [
@@ -249,7 +237,10 @@ async function main() {
     }
   }
 
-  console.log("Batch di crawling completato.");
+  console.log("Batch di crawling completato con successo!");
 }
 
-main().catch(console.error);
+main().catch((err) => {
+  console.error("Errore critico durante l'esecuzione:", err);
+  process.exit(1);
+});
