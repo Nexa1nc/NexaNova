@@ -2,22 +2,22 @@ name: Auto Crawler NexaNova
 
 on:
   schedule:
-    - cron: '*/5 * * * *' # Si avvia ogni 5 minuti h24
-  workflow_dispatch:
+    - cron: '*/5 * * * *' # Si avvia ogni 5 minuti
+  workflow_dispatch: # Permette anche l'avvio manuale dalla scheda Actions
 
 jobs:
   crawl:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout codice
+      - name: Checkout del codice
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Imposta Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Installa dipendenze
+      - name: Installa le dipendenze
         run: npm install
 
       - name: Esegui Crawler
