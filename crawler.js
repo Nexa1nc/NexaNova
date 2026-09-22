@@ -149,36 +149,30 @@ async function scrapeStandardWebpage(pageUrl) {
   }
 }
 
-// 5. Inizializzazione Tabelle DB (Esecuzione singola statement per evitare errori 400)
+
+// 5. Inizializzazione Tabelle DB tramite batch esplicito
 async function initDb() {
-  await db.execute(`
-    CREATE TABLE IF NOT EXISTS pages (
+  await db.batch([
+    `CREATE TABLE IF NOT EXISTS pages (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       url TEXT UNIQUE,
       title TEXT,
       snippet TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-
-  await db.execute(`
-    CREATE VIRTUAL TABLE IF NOT EXISTS pages_fts USING fts5(
+    )`,
+    `CREATE VIRTUAL TABLE IF NOT EXISTS pages_fts USING fts5(
       title,
       snippet
-    )
-  `);
-
-  await db.execute(`
-    CREATE TABLE IF NOT EXISTS crawl_queue (
+    )`,
+    `CREATE TABLE IF NOT EXISTS crawl_queue (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       url TEXT UNIQUE,
       priority INTEGER DEFAULT 1,
       status TEXT DEFAULT 'pending',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
+    )`
+  ], "write");
 }
-
 // 6. Esecuzione Principale
 async function main() {
   console.log("Inizializzazione Database...");
