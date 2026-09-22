@@ -1,36 +1,46 @@
-// api/search.js
+import { createClient } from '@libsql/client';
+
 export default async function handler(req, res) {
-  const query = req.query.q || req.body?.query;
-  if (!query) return res.status(400).json({ error: "Query mancante" });
+  // Abilita il CORS per il tuo frontend
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  const query = req.query.q;
+  if (!query) return res.status(200).json({ results: [] });
 
   try {
-    const response = await fetch(`https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-      }
+    const db = createClient({
+      url: process.env.TURSO_URL_1,
+      authToken: process.env.TURSO_TOKEN_1,
     });
 
-    const html = await response.text();
-    
-    // Parsing semplice delle righe dei risultati
-    const results = [];
-    const regex = /<a class="result__url" href="([^"]+)".*?>\s*(.*?)\s*<\/a>[\s\S]*?<a class="result__snippet[^"]*"[^>]*>([\s\S]*?)<\/a>/g;
-    let match;
+    // Cerca usando la wildcard * per la ricerca parziale
+    const formattedQuery = `"${query.trim().replace(/"/g, '')}"*`;
 
-    while ((match = regex.exec(html)) !== null && results.length < 15) {
-      let rawUrl = match[1];
-      if (rawUrl.includes('uddg=')) {
-        rawUrl = decodeURIComponent(rawUrl.split('uddg=')[1].split('&')[0]);
-      }
-      results.push({
-        url: rawUrl,
-        title: match[2].replace(/<[^>]+>/g, '').trim(),
-        content: match[3].replace(/<[^>]+>/g, '').trim()
-      });
-    }
+    const sql = `
+      SELECT p.url, p.title, p.snippet 
+      FROM pages_fts fts
+      JOIN pages p ON fts.rowid = p.id
+      WHERE pages_fts MATCH ?
+      ORDER BY rank
+      LIMIT 15;
+    `;
+
+    const response = await db.execute({ sql, args: [formattedQuery] });
+
+    const results = response.rows.map(row => ({
+      title: row.title,
+      url: row.url,
+      snippet: row.snippet
+    }));
 
     return res.status(200).json({ results });
   } catch (err) {
-    return res.status(500).json({ error: "Errore durante la ricerca" });
+    console.error('Errore durante la ricerca:', err);
+    return res.status(500).json({ error: 'Errore interno del server', details: err.message });
   }
 }
