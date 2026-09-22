@@ -1,6 +1,7 @@
 {
-  "name": "nexanova",
+  "name": "nexanova-crawler",
   "version": "1.0.0",
+  "description": "Motore di ricerca NexaNova",
   "type": "module",
   "main": "crawler.js",
   "scripts": {
@@ -9,7 +10,6 @@
   "dependencies": {
     "@libsql/client": "^0.6.0",
     "axios": "^1.6.8",
-    "cheerio": "^1.0.0-rc.12",
-    "dotenv": "^16.4.5"
+    "cheerio": "^1.0.0-rc.12"
   }
 }
