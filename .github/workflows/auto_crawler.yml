@@ -2,30 +2,27 @@ name: Auto Crawler NexaNova
 
 on:
   schedule:
-    - cron: '0 */6 * * *' # Gira automaticamente ogni 6 ore
-  workflow_dispatch: # Permette l'avvio manuale dal pannello GitHub
+    # Fa girare il crawler ogni ora in automatico
+    - cron: '0 * * * *'
+  workflow_dispatch: # Permette l'avvio manuale dalla scheda Actions
 
 jobs:
-  run-crawler:
+  crawl:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout del codice
-        uses: actions/checkout@v3
+      - name: Checkout codice
+        uses: actions/checkout@v4
 
-      - name: Configura Node.js
-        uses: actions/setup-node@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: 18
 
-      - name: Installa le dipendenze
+      - name: Installa dipendenze
         run: npm install
 
-      - name: Esegui il Crawler
+      - name: Esegui Crawler
         env:
           TURSO_URL_1: ${{ secrets.TURSO_URL_1 }}
           TURSO_TOKEN_1: ${{ secrets.TURSO_TOKEN_1 }}
-          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
-          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
-          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
-        run: npm run crawl
+        run: node crawler.js
