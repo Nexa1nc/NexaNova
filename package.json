@@ -1,0 +1,13 @@
+{
+  "name": "nexanova",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "index": "node search_engine/build.js"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.15.15",
+    "cheerio": "^1.1.2"
+  }
+}
