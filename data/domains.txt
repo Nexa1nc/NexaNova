@@ -1,1 +1,398 @@
+```text
+# ==========================================
+# NEXANOVA - DOMAIN PRIORITIES
+# formato: dominio|priorita
+# ==========================================
+
+# ==========================================
+# ITALIA - NEWS / INFORMAZIONE
+# ==========================================
+
+ansa.it|95
+repubblica.it|93
+corriere.it|93
+ilsole24ore.com|92
+la7.it|88
+rainews.it|90
+tgcom24.mediaset.it|86
+adnkronos.com|88
+agi.it|87
+ilfattoquotidiano.it|84
+lastampa.it|86
+ilgiornale.it|80
+ilmessaggero.it|84
+quotidiano.net|82
+fanpage.it|82
+open.online|80
+today.it|78
+wired.it|85
+esquire.com|72
+vanityfair.it|72
+huffingtonpost.it|78
+ilpost.it|87
+linkiesta.it|76
+internazionale.it|84
+editorialedomani.it|76
+askanews.it|78
+dire.it|77
+money.it|75
+investire.biz|70
+
+# ==========================================
+# ITALIA - TECH / INFORMATICA
+# ==========================================
+
+hwupgrade.it|90
+tomshw.it|88
+hdblog.it|87
+dday.it|86
+multiplayer.it|82
+everyeye.it|80
+androidworld.it|82
+androidiani.com|74
+macitynet.it|76
+punto-informatico.it|85
+zeusnews.it|72
+techprincess.it|78
+tech.everyeye.it|77
+smartworld.it|82
+mondomobileweb.it|72
+mobileworld.it|75
+pcprofessionale.it|76
+bitmat.it|72
+01net.it|74
+ictbusiness.it|73
+
+# ==========================================
+# ITALIA - GUIDE / SOFTWARE
+# ==========================================
+
+aranzulla.it|90
+html.it|86
+mrwebmaster.it|78
+mondoinformatico.info|65
+chimerarevo.com|72
+tuttotech.net|74
+ilsoftware.it|84
+sos-pc.it|68
+geekissimo.com|65
+punto-informatico.it|85
+ninjamarketing.it|74
+wearemarketers.net|70
+howtechismade.com|65
+libreriamo.it|60
+studenti.it|68
+
+# ==========================================
+# ITALIA - SPORT
+# ==========================================
+
+gazzetta.it|92
+corrieredellosport.it|88
+tuttosport.com|86
+skysport.it|90
+sportmediaset.mediaset.it|84
+eurosport.it|84
+fcinter1908.it|72
+forzaroma.info|70
+milannews.it|72
+calciomercato.com|82
+goal.com|80
+tuttomercatoweb.com|82
+fantacalcio.it|83
+fantagazzetta.com|78
+sky.it|82
+dazn.com|78
+formula1.it|68
+basketuniverso.it|65
+pianetabasket.com|65
+nba.com|85
+
+# ==========================================
+# ITALIA - ECONOMIA / FINANZA
+# ==========================================
+
+borsaitaliana.it|88
+consob.it|82
+bankitalia.it|90
+agenziaentrate.gov.it|88
+mef.gov.it|82
+istat.it|90
+ivass.it|78
+abi.it|76
+finanzaonline.com|80
+soldionline.it|74
+milano-finanza.it|83
+economyup.it|72
+quifinanza.it|76
+
+# ==========================================
+# ITALIA - ISTITUZIONI / SERVIZI
+# ==========================================
+
+gov.it|90
+italia.it|82
+inps.it|88
+poste.it|84
+agid.gov.it|82
+salute.gov.it|88
+istruzione.it|88
+universitaly.it|82
+miur.gov.it|75
+giustizia.it|82
+interno.gov.it|82
+esteri.it|80
+difesa.it|76
+poliziadistato.it|82
+carabinieri.it|80
+aci.it|78
+trenitalia.com|82
+italotreno.com|76
+
+# ==========================================
+# ITALIA - E-COMMERCE / SERVIZI
+# ==========================================
+
+amazon.it|90
+ebay.it|82
+subito.it|82
+mediaworld.it|80
+unieuro.it|80
+eprice.it|74
+monclick.it|68
+esselunga.it|72
+coop.it|72
+conad.it|72
+carrefour.it|72
+iliad.it|78
+tim.it|82
+vodafone.it|82
+windtre.it|80
+fastweb.it|78
+
+# ==========================================
+# ITALIA - CULTURA / ENCICLOPEDIE
+# ==========================================
+
+treccani.it|94
+wikipedia.org|95
+sapere.it|76
+studentville.it|68
+skuola.net|70
+docsity.com|68
+mymovies.it|74
+movieplayer.it|76
+comingsoon.it|78
+rockol.it|72
+
+# ==========================================
+# INTERNAZIONALI - SEARCH / WEB
+# ==========================================
+
+google.com|95
+bing.com|88
+duckduckgo.com|82
+yahoo.com|78
+brave.com|78
+yandex.com|65
+startpage.com|72
+
+# ==========================================
+# INTERNAZIONALI - TECH / AI
+# ==========================================
+
+microsoft.com|94
+apple.com|94
+google.com|95
+openai.com|95
+anthropic.com|88
+nvidia.com|94
+amd.com|90
+intel.com|90
+qualcomm.com|84
+arm.com|84
+ibm.com|84
+oracle.com|82
+meta.com|90
+amazon.com|88
+aws.amazon.com|88
+cloudflare.com|90
+mozilla.org|88
+linux.org|78
+ubuntu.com|82
+debian.org|78
+redhat.com|76
+canonical.com|76
+samsung.com|86
+sony.com|82
+github.com|94
+gitlab.com|82
+bitbucket.org|74
+huggingface.co|92
+kaggle.com|82
+arxiv.org|88
+researchgate.net|80
+paperswithcode.com|82
+
+# ==========================================
+# INTERNAZIONALI - PROGRAMMAZIONE
+# ==========================================
+
+stackoverflow.com|92
+stackexchange.com|84
+python.org|90
+nodejs.org|84
+npmjs.com|88
+pypi.org|86
+rust-lang.org|78
+go.dev|80
+developer.mozilla.org|92
+w3.org|82
+web.dev|82
+javascript.com|70
+typescriptlang.org|80
+react.dev|82
+vuejs.org|78
+angular.dev|78
+nextjs.org|80
+vercel.com|84
+netlify.com|76
+docker.com|82
+kubernetes.io|82
+
+# ==========================================
+# INTERNAZIONALI - SOFTWARE / CLOUD
+# ==========================================
+
+adobe.com|82
+autodesk.com|76
+atlassian.com|78
+notion.so|80
+slack.com|80
+discord.com|78
+zoom.us|74
+dropbox.com|74
+box.com|70
+salesforce.com|76
+sap.com|74
+shopify.com|78
+stripe.com|76
+twilio.com|70
+linear.app|70
+figma.com|78
+canva.com|82
+
+# ==========================================
+# INTERNAZIONALI - NEWS / MEDIA
+# ==========================================
+
+bbc.com|88
+bbc.co.uk|86
+cnn.com|82
+nytimes.com|82
+theguardian.com|86
+reuters.com|92
+apnews.com|82
+washingtonpost.com|80
+forbes.com|82
+bloomberg.com|84
+businessinsider.com|76
+time.com|74
+nationalgeographic.com|76
+newsweek.com|72
+politico.eu|74
+euronews.com|82
+dw.com|80
+france24.com|76
+aljazeera.com|74
+
+# ==========================================
+# INTERNAZIONALI - SCIENZA / RICERCA
+# ==========================================
+
+nature.com|90
+science.org|88
+sciencedirect.com|84
+springer.com|80
+elsevier.com|78
+mit.edu|80
+stanford.edu|80
+harvard.edu|80
+ox.ac.uk|78
+cam.ac.uk|78
+cern.ch|84
+nasa.gov|88
+esa.int|86
+
+# ==========================================
+# INTERNAZIONALI - SPORT
+# ==========================================
+
+uefa.com|90
+fifa.com|90
+formula1.com|84
+espn.com|80
+skysports.com|78
+nba.com|86
+nfl.com|74
+olympics.com|82
+motogp.com|84
+
+# ==========================================
+# INTERNAZIONALI - SHOPPING / CONSUMER
+# ==========================================
+
+amazon.com|90
+ebay.com|80
+aliexpress.com|74
+walmart.com|70
+bestbuy.com|70
+ikea.com|76
+nike.com|74
+adidas.com|74
+booking.com|80
+airbnb.com|76
+tripadvisor.com|78
+
+# ==========================================
+# INTERNAZIONALI - COMMUNITY / KNOWLEDGE
+# ==========================================
+
+reddit.com|82
+quora.com|76
+medium.com|80
+substack.com|76
+wordpress.com|74
+blogspot.com|70
+tumblr.com|68
+wikimedia.org|82
+archive.org|88
+imdb.com|76
+goodreads.com|70
+
+# ==========================================
+# INTERNAZIONALI - VIDEO / SOCIAL
+# ==========================================
+
+youtube.com|94
+vimeo.com|72
+tiktok.com|78
+instagram.com|78
+facebook.com|76
+linkedin.com|78
+x.com|74
+pinterest.com|68
+
+# ==========================================
+# INTERNAZIONALI - MAPPE / TRAVEL
+# ==========================================
+
+maps.google.com|90
+tripadvisor.com|78
+booking.com|80
+rome2rio.com|70
+kayak.com|70
+expedia.com|70
+lonelyplanet.com|74
+```
 
