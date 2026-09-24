@@ -1,276 +1,193 @@
-function getHost(rawUrl) {
-    try {
-        return new URL(rawUrl).hostname
-            .toLowerCase()
-            .replace(/^www\./, "");
-    } catch {
-        return "";
-    }
+import { createClient } from "@libsql/client";
+
+const db = createClient({
+  url: process.env.TURSO_DATABASE_URL,
+  authToken: process.env.TURSO_AUTH_TOKEN
+});
+
+function json(res, status, body) {
+  res.status(status).setHeader("Content-Type", "application/json; charset=utf-8");
+  res.end(JSON.stringify(body));
 }
 
-function getDomainQuality(host) {
-    if (!host) return 0.4;
-
-    const highQualityDomains = [
-        "wikipedia.org",
-        "github.com",
-        "stackoverflow.com",
-        "stackexchange.com",
-        "mozilla.org",
-        "python.org",
-        "arxiv.org",
-        "nature.com",
-        "reuters.com",
-        "apnews.com",
-        "bbc.com",
-        "microsoft.com",
-        "apple.com",
-        "google.com",
-        "nvidia.com",
-        "openai.com",
-        "cloudflare.com",
-        "developer.mozilla.org",
-        "docs.python.org"
-    ];
-
-    if (
-        highQualityDomains.some(
-            domain => host === domain || host.endsWith("." + domain)
-        )
-    ) {
-        return 1.0;
-    }
-
-    if (
-        host.endsWith(".gov") ||
-        host.endsWith(".edu") ||
-        host.endsWith(".edu.it")
-    ) {
-        return 0.95;
-    }
-
-    if (host.endsWith(".eu")) {
-        return 0.85;
-    }
-
-    return 0.55;
+function normalizeQuery(query) {
+  return String(query || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .slice(0, 200);
 }
 
-function getRegionAdjustment(host) {
-    // Non blocca i domini russi:
-    // li penalizza soltanto nelle ricerche generiche.
-    if (
-        host.endsWith(".ru") ||
-        host.endsWith(".рф") ||
-        host === "yandex.ru" ||
-        host === "ya.ru" ||
-        host === "mail.ru"
-    ) {
-        return 0.65;
-    }
+function buildFtsQuery(query) {
+  const tokens = query
+    .normalize("NFKC")
+    .toLowerCase()
+    .match(/[\p{L}\p{N}]+/gu) || [];
 
-    return 1.0;
+  const unique = [...new Set(tokens)]
+    .filter(token => token.length >= 2)
+    .slice(0, 12);
+
+  if (!unique.length) return null;
+
+  return unique
+    .map(token => `"${token.replace(/"/g, "")}"*`)
+    .join(" AND ");
 }
 
-function rankResult(result, originalIndex) {
-    const host = getHost(result.url);
+function freshnessScore(lastSeen) {
+  if (!lastSeen) return 0;
 
-    const searxScore = Number(result.score);
+  const timestamp = Date.parse(lastSeen);
+  if (!Number.isFinite(timestamp)) return 0;
 
-    const relevance =
-        Number.isFinite(searxScore) && searxScore > 0
-            ? searxScore
-            : 1 / (originalIndex + 1);
+  const days = Math.max(
+    0,
+    (Date.now() - timestamp) / (1000 * 60 * 60 * 24)
+  );
 
-    const engineCount = Array.isArray(result.engines)
-        ? result.engines.length
-        : result.engine
-            ? 1
-            : 0;
-
-    const consensus = Math.min(engineCount / 4, 1);
-
-    const originalPosition =
-        1 / (originalIndex + 1);
-
-    const domainQuality =
-        getDomainQuality(host);
-
-    const regionAdjustment =
-        getRegionAdjustment(host);
-
-    /*
-      NexaRank v0.1
-
-      50% = rilevanza
-      20% = consenso tra motori
-      15% = posizione originale
-      15% = qualità dominio
-    */
-
-    const score =
-        (
-            relevance * 0.50 +
-            consensus * 0.20 +
-            originalPosition * 0.15 +
-            domainQuality * 0.15
-        ) * regionAdjustment;
-
-    return {
-        title: result.title || host || "Risultato",
-        url: result.url || "#",
-        description: result.content || "",
-        domain: host,
-        score: Number(score.toFixed(5))
-    };
+  return 100 * Math.exp(-days / 180);
 }
 
-function deduplicate(results) {
-    const seen = new Set();
+function behaviorScore(clicks, impressions) {
+  const c = Number(clicks || 0);
+  const i = Number(impressions || 0);
 
-    return results.filter(result => {
-        try {
-            const url = new URL(result.url);
+  if (i <= 0 || c <= 0) return 0;
 
-            url.hash = "";
+  const ctr = c / i;
 
-            const normalized = url
-                .toString()
-                .replace(/\/$/, "");
+  // Evita che pochissime impression producano punteggi enormi.
+  const confidence = Math.min(1, i / 100);
 
-            if (seen.has(normalized)) {
-                return false;
-            }
-
-            seen.add(normalized);
-            return true;
-        } catch {
-            return false;
-        }
-    });
+  return Math.min(100, ctr * 100) * confidence;
 }
 
 export default async function handler(req, res) {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "GET");
+  if (req.method !== "GET") {
+    return json(res, 405, { error: "Method not allowed" });
+  }
 
-    const query = String(req.query?.q || "").trim();
+  if (!process.env.TURSO_DATABASE_URL || !process.env.TURSO_AUTH_TOKEN) {
+    return json(res, 500, {
+      error: "Turso environment variables are missing"
+    });
+  }
 
-    if (!query) {
-        return res.status(400).json({
-            results: [],
-            error: "Query mancante"
-        });
+  const query = normalizeQuery(req.query?.q);
+
+  if (!query) {
+    return json(res, 200, {
+      results: [],
+      source: "nexanova"
+    });
+  }
+
+  const ftsQuery = buildFtsQuery(query);
+
+  if (!ftsQuery) {
+    return json(res, 200, {
+      results: [],
+      source: "nexanova"
+    });
+  }
+
+  try {
+    const result = await db.execute({
+      sql: `
+        SELECT
+          p.id,
+          p.url,
+          p.domain,
+          p.title,
+          p.snippet,
+          p.description,
+          p.tags,
+          p.base_priority,
+          p.quality,
+          p.impressions,
+          p.clicks,
+          p.last_seen,
+          bm25(pages_fts) AS bm25_score
+        FROM pages_fts
+        JOIN pages p
+          ON p.id = pages_fts.rowid
+        WHERE pages_fts MATCH ?
+        LIMIT 100
+      `,
+      args: [ftsQuery]
+    });
+
+    const rows = result.rows || [];
+
+    if (!rows.length) {
+      return json(res, 200, {
+        results: [],
+        source: "nexanova"
+      });
     }
 
-    if (query.length > 200) {
-        return res.status(400).json({
-            results: [],
-            error: "Query troppo lunga"
-        });
-    }
+    const relevanceValues = rows.map(row =>
+      Math.max(0, Number(row.bm25_score) * -1)
+    );
 
-    /*
-      Inserisci qui una istanza SearXNG pubblica
-      che supporti format=json.
+    const minRelevance = Math.min(...relevanceValues);
+    const maxRelevance = Math.max(...relevanceValues);
 
-      Meglio usare la variabile Vercel SEARXNG_URL,
-      così puoi cambiare istanza senza modificare il codice.
-    */
+    const normalizeRelevance = value => {
+      if (maxRelevance === minRelevance) return 100;
 
-    const searxngUrl =
-        process.env.SEARXNG_URL ||
-        "https://SEARXNG-INSTANCE-DA-SCEGLIERE";
+      return (
+        ((value - minRelevance) /
+          (maxRelevance - minRelevance)) *
+        100
+      );
+    };
 
-    try {
-        const searchUrl = new URL(
-            "/search",
-            searxngUrl
-        );
+    const ranked = rows.map((row, index) => {
+      const relevance = normalizeRelevance(relevanceValues[index]);
+      const priority = Number(row.base_priority || 50);
+      const quality = Number(row.quality || 50);
+      const freshness = freshnessScore(row.last_seen);
+      const behavior = behaviorScore(
+        row.clicks,
+        row.impressions
+      );
 
-        searchUrl.searchParams.set(
-            "q",
-            query
-        );
+      const score =
+        relevance * 0.50 +
+        priority * 0.20 +
+        quality * 0.10 +
+        freshness * 0.10 +
+        behavior * 0.10;
 
-        searchUrl.searchParams.set(
-            "format",
-            "json"
-        );
+      return {
+        id: Number(row.id),
+        url: String(row.url),
+        title: String(row.title || row.url),
+        description: String(
+          row.description ||
+          row.snippet ||
+          "Nessuna descrizione disponibile."
+        ),
+        snippet: String(row.snippet || ""),
+        domain: String(row.domain || ""),
+        tags: String(row.tags || ""),
+        score
+      };
+    });
 
-        searchUrl.searchParams.set(
-            "language",
-            "all"
-        );
+    ranked.sort((a, b) => b.score - a.score);
 
-        searchUrl.searchParams.set(
-            "safesearch",
-            "1"
-        );
+    return json(res, 200, {
+      results: ranked.slice(0, 50),
+      source: "nexanova",
+      query
+    });
+  } catch (error) {
+    console.error("NexaNova search error:", error);
 
-        searchUrl.searchParams.set(
-            "pageno",
-            "1"
-        );
-
-        const response = await fetch(
-            searchUrl,
-            {
-                headers: {
-                    Accept: "application/json",
-                    "User-Agent":
-                        "NexaNova/1.0"
-                },
-                signal: AbortSignal.timeout(8000)
-            }
-        );
-
-        if (!response.ok) {
-            throw new Error(
-                `SearXNG HTTP ${response.status}`
-            );
-        }
-
-        const data =
-            await response.json();
-
-        const rawResults =
-            Array.isArray(data.results)
-                ? data.results
-                : [];
-
-        const results =
-            deduplicate(
-                rawResults.map(
-                    (result, index) =>
-                        rankResult(
-                            result,
-                            index
-                        )
-                )
-            )
-            .sort(
-                (a, b) =>
-                    b.score - a.score
-            )
-            .slice(0, 50);
-
-        return res.status(200).json({
-            query,
-            results,
-            source: "searxng"
-        });
-
-    } catch (error) {
-        console.error(
-            "NexaNova SearXNG error:",
-            error
-        );
-
-        return res.status(502).json({
-            results: [],
-            error:
-                "Motore di ricerca temporaneamente non disponibile."
-        });
-    }
+    return json(res, 500, {
+      error: "Database search failed"
+    });
+  }
 }
