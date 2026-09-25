@@ -1,15 +1,16 @@
 <!DOCTYPE html>
-
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>NexaNova</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
   <link
     href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap"
     rel="stylesheet"
@@ -17,7 +18,7 @@
 
   <style>
     * {
-      font-family: 'Space Mono', monospace;
+      font-family: "Space Mono", monospace;
       box-sizing: border-box;
     }
 
@@ -30,7 +31,7 @@
     }
 
     body {
-      background-color: #f4f2ec;
+      background: #f4f2ec;
       color: #111111;
       min-height: 100vh;
       overflow-y: hidden;
@@ -40,12 +41,20 @@
       overflow-y: auto;
     }
 
+    /* =========================
+       BACKGROUND
+       ========================= */
+
     #touch-canvas {
       position: fixed;
       inset: 0;
       z-index: 0;
       pointer-events: none;
     }
+
+    /* =========================
+       HEADER
+       ========================= */
 
     header {
       position: fixed;
@@ -87,25 +96,36 @@
       margin-left: auto;
     }
 
+    /* =========================
+       HOME
+       ========================= */
+
     .home-section {
       position: relative;
       z-index: 10;
       width: 100%;
       max-width: 620px;
       padding: 0 32px;
+
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
+
       margin: 0 auto;
       min-height: 100vh;
-      justify-content: center;
-      margin-top: -150px;
-      transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+
+      /* Tutto il blocco viene spostato più in basso */
+      transform: translateY(85px);
+
+      transition:
+        opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     body.results-active .home-section {
       opacity: 0;
-      transform: translateY(-50px) scale(0.95);
+      transform: translateY(10px) scale(0.95);
       pointer-events: none;
       position: absolute;
     }
@@ -118,6 +138,10 @@
       transform: scale(1.35);
     }
 
+    /* =========================
+       SEARCH
+       ========================= */
+
     .search-frame {
       position: relative;
       width: 100%;
@@ -129,9 +153,11 @@
       height: 14px;
       border-color: rgba(17, 17, 17, 0.22);
       border-style: solid;
+
       transition:
         border-color 0.25s ease,
         transform 0.25s ease;
+
       pointer-events: none;
     }
 
@@ -169,7 +195,9 @@
       background: transparent;
       border: none;
       outline: none;
+
       padding: 22px 56px 22px 24px;
+
       font-size: 1.05rem;
       color: #111111;
     }
@@ -182,17 +210,24 @@
       position: absolute;
       right: 12px;
       top: 50%;
+
       transform: translateY(-50%);
+
       width: 38px;
       height: 38px;
+
       border: none;
       border-radius: 50%;
+
       background: #111111;
       color: #f4f2ec;
+
       display: flex;
       align-items: center;
       justify-content: center;
+
       cursor: pointer;
+
       transition: transform 0.2s ease;
     }
 
@@ -203,28 +238,41 @@
 
     .hint {
       margin-top: 28px;
+
       font-size: 0.65rem;
       letter-spacing: 0.25em;
       text-transform: uppercase;
+
       color: rgba(17, 17, 17, 0.38);
     }
 
+    /* =========================
+       DONATE
+       ========================= */
+
     .donate-btn {
       margin-top: 18px;
+
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
+
       padding: 9px 18px;
+
       border: 1px solid rgba(17, 17, 17, 0.22);
+
       color: #111111;
-      text-decoration: none;
+      background: transparent;
+
       font-size: 0.68rem;
       font-weight: 700;
+
       letter-spacing: 0.14em;
       text-transform: uppercase;
-      background: transparent;
+
       cursor: pointer;
+
       transition:
         background 0.2s ease,
         color 0.2s ease,
@@ -239,32 +287,40 @@
       transform: translateY(-2px);
     }
 
-    .donate-btn:active {
-      transform: translateY(0);
-    }
-
     .donate-heart {
       font-size: 0.9rem;
       line-height: 1;
+
       transition: transform 0.2s ease;
     }
 
     .donate-btn:hover .donate-heart {
-      transform: scale(1.15);
+      transform: scale(1.18);
     }
+
+    /* =========================
+       DONATION MODAL
+       ========================= */
 
     .donation-overlay {
       position: fixed;
       inset: 0;
+
       z-index: 200;
+
       display: flex;
       align-items: center;
       justify-content: center;
+
       padding: 24px;
+
       background: rgba(17, 17, 17, 0.28);
+
       backdrop-filter: blur(8px);
+
       opacity: 0;
       pointer-events: none;
+
       transition: opacity 0.25s ease;
     }
 
@@ -276,12 +332,21 @@
     .donation-modal {
       width: 100%;
       max-width: 520px;
+
       background: #f4f2ec;
+
       border: 1px solid rgba(17, 17, 17, 0.12);
-      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.18);
+
+      box-shadow:
+        0 30px 80px rgba(0, 0, 0, 0.18);
+
       padding: 30px;
+
       transform: translateY(18px) scale(0.98);
-      transition: transform 0.25s ease;
+
+      transition:
+        transform 0.25s ease;
+
       position: relative;
     }
 
@@ -291,16 +356,24 @@
 
     .donation-close {
       position: absolute;
+
       top: 16px;
       right: 16px;
+
       width: 32px;
       height: 32px;
-      border: 1px solid rgba(17, 17, 17, 0.18);
+
+      border:
+        1px solid rgba(17, 17, 17, 0.18);
+
       background: transparent;
       color: #111111;
+
       cursor: pointer;
+
       font-size: 18px;
       line-height: 1;
+
       transition: all 0.2s ease;
     }
 
@@ -311,9 +384,12 @@
 
     .donation-kicker {
       font-size: 0.65rem;
+
       letter-spacing: 0.2em;
       text-transform: uppercase;
+
       color: rgba(17, 17, 17, 0.4);
+
       margin-bottom: 10px;
     }
 
@@ -325,24 +401,39 @@
 
     .donation-description {
       margin-top: 12px;
+
       font-size: 0.8rem;
       line-height: 1.6;
+
       color: rgba(17, 17, 17, 0.6);
     }
 
     .donation-options {
       display: grid;
+
       grid-template-columns: 1fr 1fr;
+
       gap: 14px;
+
       margin-top: 26px;
     }
 
     .donation-option {
-      border: 1px solid rgba(17, 17, 17, 0.16);
-      background: rgba(255, 255, 255, 0.35);
+      border:
+        1px solid rgba(17, 17, 17, 0.16);
+
+      background:
+        rgba(255, 255, 255, 0.35);
+
       padding: 20px;
+
       text-align: left;
+
       cursor: pointer;
+
+      text-decoration: none;
+      color: inherit;
+
       transition:
         transform 0.2s ease,
         background 0.2s ease,
@@ -351,8 +442,12 @@
 
     .donation-option:hover {
       transform: translateY(-3px);
-      background: rgba(255, 255, 255, 0.72);
-      border-color: rgba(17, 17, 17, 0.35);
+
+      background:
+        rgba(255, 255, 255, 0.72);
+
+      border-color:
+        rgba(17, 17, 17, 0.35);
     }
 
     .donation-option-icon {
@@ -363,44 +458,69 @@
     .donation-option-title {
       font-size: 0.95rem;
       font-weight: 700;
+
       margin-bottom: 8px;
     }
 
     .donation-option-text {
       font-size: 0.7rem;
       line-height: 1.5;
+
       color: rgba(17, 17, 17, 0.58);
     }
 
     .donation-preview-badge {
       display: inline-block;
+
       margin-top: 14px;
+
       padding: 4px 7px;
-      border: 1px solid rgba(17, 17, 17, 0.14);
+
+      border:
+        1px solid rgba(17, 17, 17, 0.14);
+
       font-size: 0.55rem;
+
       letter-spacing: 0.12em;
       text-transform: uppercase;
+
       color: rgba(17, 17, 17, 0.45);
     }
 
     .donation-footer {
       margin-top: 20px;
+
       font-size: 0.62rem;
       line-height: 1.5;
+
       color: rgba(17, 17, 17, 0.38);
+
       text-align: center;
     }
 
+    /* =========================
+       RESULTS TOP BAR
+       ========================= */
+
     .results-top-bar {
       position: fixed;
+
       top: 16px;
       left: 50%;
-      transform: translateX(-50%);
+
+      transform:
+        translateX(-50%);
+
       width: 460px;
+
       z-index: 100;
+
       opacity: 0;
+
       pointer-events: none;
-      transition: opacity 0.35s ease;
+
+      transition:
+        opacity 0.35s ease;
     }
 
     body.results-active .results-top-bar {
@@ -409,7 +529,9 @@
     }
 
     .results-top-bar .search-frame input {
-      padding: 16px 48px 16px 20px;
+      padding:
+        16px 48px 16px 20px;
+
       font-size: 0.9rem;
     }
 
@@ -424,81 +546,138 @@
       right: 10px;
     }
 
+    /* =========================
+       RESULTS
+       ========================= */
+
     .results-container {
       position: relative;
       z-index: 10;
+
       width: 100%;
       max-width: 780px;
+
       margin: 0 auto;
-      padding: 120px 40px 100px;
+
+      padding:
+        120px 40px 100px;
+
       opacity: 0;
-      transform: translateY(40px);
+
+      transform:
+        translateY(40px);
+
       transition:
-        all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        all 0.6s
+        cubic-bezier(0.16, 1, 0.3, 1);
+
       display: none;
     }
 
     body.results-active .results-container {
       display: block;
+
       opacity: 1;
-      transform: translateY(0);
+
+      transform:
+        translateY(0);
     }
 
     .results-label {
       margin-bottom: 36px;
+
       font-size: 0.7rem;
+
       letter-spacing: 0.22em;
+
       text-transform: uppercase;
-      color: rgba(17, 17, 17, 0.34);
-      border-bottom: 1px solid rgba(17, 17, 17, 0.08);
+
+      color:
+        rgba(17, 17, 17, 0.34);
+
+      border-bottom:
+        1px solid
+        rgba(17, 17, 17, 0.08);
+
       padding-bottom: 14px;
     }
 
     .result-item {
       margin-bottom: 28px;
+
       position: relative;
+
       padding: 20px;
-      background: rgba(255, 255, 255, 0.4);
+
+      background:
+        rgba(255, 255, 255, 0.4);
+
       border-radius: 4px;
-      transition: transform 0.2s ease;
+
+      transition:
+        transform 0.2s ease;
     }
 
     .result-item:hover {
-      transform: translateX(8px);
+      transform:
+        translateX(8px);
     }
 
     .url-row {
       display: flex;
+
       align-items: center;
+
       gap: 8px;
+
       margin-bottom: 6px;
     }
 
     .res-url {
       font-size: 0.7rem;
-      color: rgba(17, 17, 17, 0.5);
+
+      color:
+        rgba(17, 17, 17, 0.5);
+
       word-break: break-all;
     }
 
     .verified-badge {
       display: inline-flex;
+
       align-items: center;
+
       gap: 4px;
+
       font-size: 0.65rem;
+
       color: #16a34a;
+
       font-weight: 700;
-      background: rgba(22, 163, 74, 0.1);
+
+      background:
+        rgba(22, 163, 74, 0.1);
+
       padding: 2px 6px;
+
       border-radius: 4px;
-      border: 1px solid rgba(22, 163, 74, 0.2);
+
+      border:
+        1px solid
+        rgba(22, 163, 74, 0.2);
     }
 
     .res-title {
       font-size: 1.15rem;
+
       font-weight: 700;
+
       color: #111111;
+
       text-decoration: none;
+
       margin-bottom: 8px;
+
       display: inline-block;
     }
 
@@ -508,34 +687,56 @@
 
     .res-desc {
       font-size: 0.85rem;
+
       line-height: 1.6;
-      color: rgba(17, 17, 17, 0.6);
+
+      color:
+        rgba(17, 17, 17, 0.6);
     }
 
     .pagination-bar {
       display: flex;
+
       align-items: center;
+
       justify-content: space-between;
+
       margin-top: 40px;
+
       padding-top: 20px;
-      border-top: 1px solid rgba(17, 17, 17, 0.15);
+
+      border-top:
+        1px solid
+        rgba(17, 17, 17, 0.15);
     }
 
     .page-btn {
       background: #111111;
+
       color: #f4f2ec;
+
       border: none;
-      padding: 12px 20px;
+
+      padding:
+        12px 20px;
+
       font-size: 0.8rem;
+
       font-weight: 700;
+
       cursor: pointer;
+
       text-transform: uppercase;
+
       letter-spacing: 0.08em;
-      transition: opacity 0.2s;
+
+      transition:
+        opacity 0.2s;
     }
 
     .page-btn:disabled {
       opacity: 0.25;
+
       cursor: not-allowed;
     }
 
@@ -549,25 +750,45 @@
       color: #111111;
     }
 
+    /* =========================
+       FOOTER
+       ========================= */
+
     footer {
       position: fixed;
+
       bottom: 24px;
+
       width: 100%;
+
       text-align: center;
+
       font-size: 0.7rem;
+
       letter-spacing: 0.12em;
+
       text-transform: uppercase;
-      color: rgba(17, 17, 17, 0.4);
+
+      color:
+        rgba(17, 17, 17, 0.4);
+
       z-index: 5;
     }
 
     body.results-active footer {
       position: relative;
+
       bottom: 0;
+
       padding: 40px 0;
     }
 
+    /* =========================
+       MOBILE
+       ========================= */
+
     @media (max-width: 700px) {
+
       header {
         padding: 24px 22px;
       }
@@ -578,18 +799,24 @@
 
       .home-section {
         max-width: 100%;
+
         padding: 0 20px;
-        margin-top: -90px;
+
+        transform:
+          translateY(55px);
       }
 
       .logo-img {
         width: 340px;
         height: 190px;
-        transform: scale(1.2);
+
+        transform:
+          scale(1.2);
       }
 
       .results-top-bar {
-        width: calc(100vw - 40px);
+        width:
+          calc(100vw - 40px);
       }
 
       .results-container {
@@ -606,162 +833,208 @@
       }
     }
   </style>
-
 </head>
 
 <body>
 
-<canvas id="touch-canvas"></canvas>
+  <canvas id="touch-canvas"></canvas>
+
+  <!-- HEADER -->
 
   <header>
-    <div class="brand" onclick="goHome()">
+
+    <div
+      class="brand"
+      onclick="goHome()"
+    >
       <div class="brand-dot"></div>
     </div>
 
-```
-<div class="clock" id="clock">00:00:00</div>
-```
+    <div
+      class="clock"
+      id="clock"
+    >
+      00:00:00
+    </div>
 
   </header>
 
+  <!-- SEARCH BAR RESULTS -->
+
   <div class="results-top-bar">
+
     <form
       class="search-frame"
       onsubmit="return handleSearch(event, 'top')"
     >
+
       <div class="corner tl"></div>
       <div class="corner tr"></div>
       <div class="corner bl"></div>
       <div class="corner br"></div>
 
-```
-  <input
-    type="text"
-    id="topQuery"
-    placeholder="Cerca ancora..."
-    autocomplete="off"
-  />
+      <input
+        type="text"
+        id="topQuery"
+        placeholder="Cerca ancora..."
+        autocomplete="off"
+      />
 
-  <button
-    type="submit"
-    class="search-btn"
-    aria-label="Cerca"
-  >
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2.5"
-    >
-      <line x1="5" y1="12" x2="19" y2="12"></line>
-      <polyline points="12 5 19 12 12 19"></polyline>
-    </svg>
-  </button>
-</form>
-```
+      <button
+        type="submit"
+        class="search-btn"
+        aria-label="Cerca"
+      >
+
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+        >
+          <line
+            x1="5"
+            y1="12"
+            x2="19"
+            y2="12"
+          />
+
+          <polyline
+            points="12 5 19 12 12 19"
+          />
+        </svg>
+
+      </button>
+
+    </form>
 
   </div>
 
-  <main class="home-section" id="homeSection">
+  <!-- HOME -->
 
-```
-<img
-  src="logo.png"
-  alt="NexaNova logo"
-  class="logo-img"
-/>
-
-<form
-  class="search-frame"
-  onsubmit="return handleSearch(event, 'home')"
->
-  <div class="corner tl"></div>
-  <div class="corner tr"></div>
-  <div class="corner bl"></div>
-  <div class="corner br"></div>
-
-  <input
-    type="text"
-    id="homeQuery"
-    placeholder="Inizia a digitare"
-    autocomplete="off"
-  />
-
-  <button
-    type="submit"
-    class="search-btn"
-    aria-label="Cerca"
+  <main
+    class="home-section"
+    id="homeSection"
   >
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2.5"
+
+    <img
+      src="logo.png"
+      alt="NexaNova logo"
+      class="logo-img"
+    />
+
+    <form
+      class="search-frame"
+      onsubmit="return handleSearch(event, 'home')"
     >
-      <line x1="5" y1="12" x2="19" y2="12"></line>
-      <polyline points="12 5 19 12 12 19"></polyline>
-    </svg>
-  </button>
-</form>
 
-<p class="hint">
-  Premi invio per cercare
-</p>
+      <div class="corner tl"></div>
+      <div class="corner tr"></div>
+      <div class="corner bl"></div>
+      <div class="corner br"></div>
 
-<button
-  type="button"
-  class="donate-btn"
-  onclick="openDonationModal()"
->
-  <span class="donate-heart" aria-hidden="true">♥</span>
-  Dona
-</button>
-```
+      <input
+        type="text"
+        id="homeQuery"
+        placeholder="Inizia a digitare"
+        autocomplete="off"
+      />
+
+      <button
+        type="submit"
+        class="search-btn"
+        aria-label="Cerca"
+      >
+
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+        >
+
+          <line
+            x1="5"
+            y1="12"
+            x2="19"
+            y2="12"
+          />
+
+          <polyline
+            points="12 5 19 12 12 19"
+          />
+
+        </svg>
+
+      </button>
+
+    </form>
+
+    <p class="hint">
+      Premi invio per cercare
+    </p>
+
+    <button
+      type="button"
+      class="donate-btn"
+      onclick="openDonationModal()"
+    >
+      <span
+        class="donate-heart"
+        aria-hidden="true"
+      >
+        ♥
+      </span>
+
+      Dona
+    </button>
 
   </main>
+
+  <!-- RESULTS -->
 
   <div
     class="results-container"
     id="resultsSection"
   >
 
-```
-<div id="resultsList"></div>
+    <div id="resultsList"></div>
 
-<div class="pagination-bar">
+    <div class="pagination-bar">
 
-  <button
-    id="prevBtn"
-    class="page-btn"
-    onclick="changePage(-1)"
-    disabled
-  >
-    ← Precedente
-  </button>
+      <button
+        id="prevBtn"
+        class="page-btn"
+        onclick="changePage(-1)"
+        disabled
+      >
+        ← Precedente
+      </button>
 
-  <span
-    id="pageIndicator"
-    class="page-indicator"
-  >
-    Pagina 1
-  </span>
+      <span
+        id="pageIndicator"
+        class="page-indicator"
+      >
+        Pagina 1
+      </span>
 
-  <button
-    id="nextBtn"
-    class="page-btn"
-    onclick="changePage(1)"
-  >
-    Successiva →
-  </button>
+      <button
+        id="nextBtn"
+        class="page-btn"
+        onclick="changePage(1)"
+      >
+        Successiva →
+      </button>
 
-</div>
-```
+    </div>
 
   </div>
+
+  <!-- DONATION MODAL -->
 
   <div
     id="donationOverlay"
@@ -769,116 +1042,126 @@
     onclick="handleDonationOverlayClick(event)"
   >
 
-```
-<div
-  class="donation-modal"
-  role="dialog"
-  aria-modal="true"
-  aria-labelledby="donationTitle"
->
-
-  <button
-    class="donation-close"
-    type="button"
-    onclick="closeDonationModal()"
-    aria-label="Chiudi"
-  >
-    ×
-  </button>
-
-  <div class="donation-kicker">
-    Supporta NexaNova
-  </div>
-
-  <h2
-    class="donation-title"
-    id="donationTitle"
-  >
-    Scegli come contribuire
-  </h2>
-
-  <p class="donation-description">
-    Puoi supportare NexaNova con una donazione
-    tradizionale oppure tramite il futuro sistema
-    NexaGift.
-  </p>
-
-  <div class="donation-options">
-
-    <button
-      type="button"
-      class="donation-option"
-      onclick="previewDonation('Ko-fi')"
+    <div
+      class="donation-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="donationTitle"
     >
-      <div class="donation-option-icon">
-        ☕
+
+      <button
+        class="donation-close"
+        type="button"
+        onclick="closeDonationModal()"
+        aria-label="Chiudi"
+      >
+        ×
+      </button>
+
+      <div class="donation-kicker">
+        Supporta NexaNova
       </div>
 
-      <div class="donation-option-title">
-        Ko-fi
+      <h2
+        class="donation-title"
+        id="donationTitle"
+      >
+        Scegli come contribuire
+      </h2>
+
+      <p class="donation-description">
+        Puoi supportare NexaNova con una donazione
+        diretta oppure partecipando a NexaGift.
+      </p>
+
+      <div class="donation-options">
+
+        <!-- KO-FI -->
+
+        <button
+          type="button"
+          class="donation-option"
+          onclick="previewDonation('Ko-fi')"
+        >
+
+          <div class="donation-option-icon">
+            ☕
+          </div>
+
+          <div class="donation-option-title">
+            Ko-fi
+          </div>
+
+          <div class="donation-option-text">
+            Donazione diretta con i tuoi soldi.
+          </div>
+
+          <span class="donation-preview-badge">
+            Prossimamente
+          </span>
+
+        </button>
+
+        <!-- NEXAGIFT -->
+
+        <a
+          href="/nexagift/"
+          class="donation-option"
+        >
+
+          <div class="donation-option-icon">
+            🎁
+          </div>
+
+          <div class="donation-option-title">
+            NexaGift
+          </div>
+
+          <div class="donation-option-text">
+            Apri NexaGift e prova il nuovo sistema
+            di supporto basato su contenuti sponsorizzati.
+          </div>
+
+          <span class="donation-preview-badge">
+            Apri
+          </span>
+
+        </a>
+
       </div>
 
-      <div class="donation-option-text">
-        Donazione diretta con i tuoi soldi.
+      <div
+        class="donation-footer"
+        id="donationFooter"
+      >
+        NexaGift è attualmente in modalità demo.
       </div>
 
-      <span class="donation-preview-badge">
-        Preview
-      </span>
-    </button>
-
-    <button
-      type="button"
-      class="donation-option"
-      onclick="previewDonation('NexaGift')"
-    >
-      <div class="donation-option-icon">
-        🎁
-      </div>
-
-      <div class="donation-option-title">
-        NexaGift
-      </div>
-
-      <div class="donation-option-text">
-        Supporta NexaNova partecipando
-        volontariamente a contenuti pubblicitari
-        compatibili con il sistema.
-      </div>
-
-      <span class="donation-preview-badge">
-        Preview
-      </span>
-    </button>
+    </div>
 
   </div>
 
-  <div
-    class="donation-footer"
-    id="donationFooter"
-  >
-    Questa è una schermata di anteprima.
-    Nessun pagamento o annuncio viene eseguito.
-  </div>
-
-</div>
-```
-
-  </div>
+  <!-- FOOTER -->
 
   <footer>
     Created By Mattia Ristori
   </footer>
 
   <script>
-    const SEARCH_API_URL = '/api/search?q=';
+    const SEARCH_API_URL = "/api/search?q=";
 
     let currentPage = 1;
     let currentQuery = "";
+
     let allFetchedResults = [];
+
     let currentSearchTime = 0;
 
     const resultsPerPage = 10;
+
+    /* =========================
+       SECURITY
+       ========================= */
 
     function escapeHtml(value) {
       return String(value ?? "")
@@ -890,7 +1173,9 @@
     }
 
     function safeUrl(value) {
+
       try {
+
         const url = new URL(value);
 
         if (
@@ -901,35 +1186,53 @@
         }
 
         return url.href;
+
       } catch {
+
         return "#";
+
       }
     }
 
+    /* =========================
+       SEARCH
+       ========================= */
+
     function handleSearch(e, type) {
+
       e.preventDefault();
 
       const query =
-        type === 'home'
-          ? document.getElementById('homeQuery').value
-          : document.getElementById('topQuery').value;
+        type === "home"
+          ? document.getElementById("homeQuery").value
+          : document.getElementById("topQuery").value;
 
-      if (query.trim() === '') {
+      if (query.trim() === "") {
         return false;
       }
 
       currentQuery = query.trim();
+
       currentPage = 1;
 
-      document.getElementById('homeQuery').value = currentQuery;
-      document.getElementById('topQuery').value = currentQuery;
+      document.getElementById(
+        "homeQuery"
+      ).value = currentQuery;
 
-      showResults(currentQuery, currentPage);
+      document.getElementById(
+        "topQuery"
+      ).value = currentQuery;
+
+      showResults(
+        currentQuery,
+        currentPage
+      );
 
       return false;
     }
 
     function changePage(direction) {
+
       currentPage += direction;
 
       if (currentPage < 1) {
@@ -940,12 +1243,19 @@
 
       window.scrollTo({
         top: 0,
-        behavior: 'smooth'
+        behavior: "smooth"
       });
     }
 
-    async function showResults(query, page) {
-      const list = document.getElementById('resultsList');
+    async function showResults(
+      query,
+      page
+    ) {
+
+      const list =
+        document.getElementById(
+          "resultsList"
+        );
 
       list.innerHTML = `
         <p class="results-label">
@@ -953,31 +1263,41 @@
         </p>
       `;
 
-      document.body.classList.add('results-active');
+      document.body.classList.add(
+        "results-active"
+      );
 
       window.scrollTo({
         top: 0,
-        behavior: 'smooth'
+        behavior: "smooth"
       });
 
-      const startTime = performance.now();
+      const startTime =
+        performance.now();
 
       try {
-        const response = await fetch(
-          SEARCH_API_URL + encodeURIComponent(query),
-          {
-            method: 'GET',
-            cache: 'no-store'
-          }
-        );
+
+        const response =
+          await fetch(
+            SEARCH_API_URL +
+            encodeURIComponent(query),
+            {
+              method: "GET",
+              cache: "no-store"
+            }
+          );
 
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
+          throw new Error(
+            `HTTP ${response.status}`
+          );
         }
 
-        const data = await response.json();
+        const data =
+          await response.json();
 
-        const endTime = performance.now();
+        const endTime =
+          performance.now();
 
         currentSearchTime =
           (endTime - startTime) / 1000;
@@ -987,9 +1307,14 @@
             ? data.results
             : [];
 
-        if (allFetchedResults.length > 0) {
+        if (
+          allFetchedResults.length > 0
+        ) {
+
           renderPage();
+
         } else {
+
           list.innerHTML = `
             <p class="results-label">
               Trovati 0 risultati in
@@ -998,13 +1323,19 @@
             </p>
           `;
 
-          document.getElementById('nextBtn').disabled = true;
-          document.getElementById('prevBtn').disabled = true;
+          document.getElementById(
+            "nextBtn"
+          ).disabled = true;
+
+          document.getElementById(
+            "prevBtn"
+          ).disabled = true;
         }
 
       } catch (error) {
 
-        const endTime = performance.now();
+        const endTime =
+          performance.now();
 
         currentSearchTime =
           (endTime - startTime) / 1000;
@@ -1023,33 +1354,49 @@
           </p>
         `;
 
-        document.getElementById('nextBtn').disabled = true;
-        document.getElementById('prevBtn').disabled = true;
+        document.getElementById(
+          "nextBtn"
+        ).disabled = true;
+
+        document.getElementById(
+          "prevBtn"
+        ).disabled = true;
       }
     }
 
+    /* =========================
+       TRACKING
+       ========================= */
+
     function trackClick(pageId) {
-      const numericPageId = Number(pageId);
+
+      const numericPageId =
+        Number(pageId);
 
       if (
-        !Number.isInteger(numericPageId) ||
+        !Number.isInteger(
+          numericPageId
+        ) ||
         numericPageId <= 0
       ) {
         return;
       }
 
-      const payload = JSON.stringify({
-        action: "click",
-        pageId: numericPageId
-      });
+      const payload =
+        JSON.stringify({
+          action: "click",
+          pageId: numericPageId
+        });
 
       try {
-        const blob = new Blob(
-          [payload],
-          {
-            type: "application/json"
-          }
-        );
+
+        const blob =
+          new Blob(
+            [payload],
+            {
+              type: "application/json"
+            }
+          );
 
         if (
           navigator.sendBeacon &&
@@ -1058,53 +1405,83 @@
             blob
           )
         ) {
+
           return;
+
         }
+
       } catch {}
 
-      fetch("/api/click", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: payload,
-        keepalive: true
-      }).catch(() => {});
+      fetch(
+        "/api/click",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body: payload,
+
+          keepalive: true
+        }
+      ).catch(() => {});
     }
 
     function trackImpressions(items) {
-      const pageIds = items
-        .map(item => Number(item.id))
-        .filter(
-          id =>
-            Number.isInteger(id) &&
-            id > 0
-        );
+
+      const pageIds =
+        items
+          .map(
+            item => Number(item.id)
+          )
+          .filter(
+            id =>
+              Number.isInteger(id) &&
+              id > 0
+          );
 
       if (!pageIds.length) {
         return;
       }
 
-      fetch("/api/click", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          action: "impression",
-          pageIds
-        }),
-        keepalive: true
-      }).catch(() => {});
+      fetch(
+        "/api/click",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body:
+            JSON.stringify({
+              action: "impression",
+              pageIds
+            }),
+
+          keepalive: true
+        }
+      ).catch(() => {});
     }
 
+    /* =========================
+       RESULTS
+       ========================= */
+
     function renderPage() {
+
       const list =
-        document.getElementById('resultsList');
+        document.getElementById(
+          "resultsList"
+        );
 
       list.innerHTML = `
         <p class="results-label">
-          Trovati ${allFetchedResults.length}
+          Trovati
+          ${allFetchedResults.length}
           risultati in
           ${currentSearchTime.toFixed(2)}
           secondi
@@ -1112,10 +1489,12 @@
       `;
 
       const startIndex =
-        (currentPage - 1) * resultsPerPage;
+        (currentPage - 1) *
+        resultsPerPage;
 
       const endIndex =
-        startIndex + resultsPerPage;
+        startIndex +
+        resultsPerPage;
 
       const pagePoints =
         allFetchedResults.slice(
@@ -1124,20 +1503,27 @@
         );
 
       pagePoints.forEach(item => {
-        const url = safeUrl(item.url);
 
-        const title = escapeHtml(
-          item.title || item.url
-        );
+        const url =
+          safeUrl(item.url);
 
-        const desc = escapeHtml(
-          item.description ||
-          item.snippet ||
-          "Nessuna descrizione disponibile."
-        );
+        const title =
+          escapeHtml(
+            item.title ||
+            item.url
+          );
+
+        const desc =
+          escapeHtml(
+            item.description ||
+            item.snippet ||
+            "Nessuna descrizione disponibile."
+          );
 
         const visibleUrl =
-          escapeHtml(item.url || "");
+          escapeHtml(
+            item.url || ""
+          );
 
         list.innerHTML += `
           <div class="result-item">
@@ -1145,16 +1531,27 @@
             <div class="url-row">
 
               <span class="verified-badge">
+
                 <svg
                   width="12"
                   height="12"
                   viewBox="0 0 24 24"
                   fill="currentColor"
                 >
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+
+                  <path
+                    d="M12 2C6.48 2 2 6.48
+                    2 12s4.48 10 10 10
+                    10-4.48 10-10S17.52
+                    2 12 2zm-2 15l-5-5
+                    1.41-1.41L10 14.17l7.59
+                    -7.59L19 8l-9 9z"
+                  />
+
                 </svg>
 
                 Indicizzato
+
               </span>
 
               <span class="res-url">
@@ -1184,107 +1581,160 @@
       trackImpressions(pagePoints);
 
       document.getElementById(
-        'pageIndicator'
+        "pageIndicator"
       ).textContent =
         `Pagina ${currentPage}`;
 
       document.getElementById(
-        'prevBtn'
+        "prevBtn"
       ).disabled =
-        (currentPage === 1);
+        currentPage === 1;
 
       document.getElementById(
-        'nextBtn'
+        "nextBtn"
       ).disabled =
-        (endIndex >= allFetchedResults.length);
+        endIndex >=
+        allFetchedResults.length;
     }
 
+    /* =========================
+       HOME
+       ========================= */
+
     function goHome() {
+
       document.body.classList.remove(
-        'results-active'
+        "results-active"
       );
 
-      document.getElementById('homeQuery').value = '';
-      document.getElementById('topQuery').value = '';
+      document.getElementById(
+        "homeQuery"
+      ).value = "";
+
+      document.getElementById(
+        "topQuery"
+      ).value = "";
 
       currentQuery = "";
+
       currentPage = 1;
+
       allFetchedResults = [];
+
       currentSearchTime = 0;
     }
 
+    /* =========================
+       CLOCK
+       ========================= */
+
     function updateClock() {
-      document.getElementById('clock').textContent =
-        new Date().toLocaleTimeString('it-IT');
+
+      document.getElementById(
+        "clock"
+      ).textContent =
+        new Date().toLocaleTimeString(
+          "it-IT"
+        );
     }
 
-    setInterval(updateClock, 1000);
+    setInterval(
+      updateClock,
+      1000
+    );
+
     updateClock();
 
+    /* =========================
+       DONATION
+       ========================= */
+
     function openDonationModal() {
-      const overlay =
-        document.getElementById('donationOverlay');
 
-      overlay.classList.add('open');
+      document.getElementById(
+        "donationOverlay"
+      ).classList.add(
+        "open"
+      );
 
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow =
+        "hidden";
     }
 
     function closeDonationModal() {
-      const overlay =
-        document.getElementById('donationOverlay');
 
-      overlay.classList.remove('open');
+      document.getElementById(
+        "donationOverlay"
+      ).classList.remove(
+        "open"
+      );
 
-      if (
-        !document.body.classList.contains(
-          'results-active'
+      document.body.style.overflow =
+        document.body.classList.contains(
+          "results-active"
         )
-      ) {
-        document.body.style.overflow = 'hidden';
-      } else {
-        document.body.style.overflow = 'auto';
-      }
+          ? "auto"
+          : "hidden";
     }
 
     function handleDonationOverlayClick(event) {
+
       if (
         event.target.id ===
-        'donationOverlay'
+        "donationOverlay"
       ) {
+
         closeDonationModal();
+
       }
     }
 
     function previewDonation(method) {
+
       const footer =
-        document.getElementById('donationFooter');
+        document.getElementById(
+          "donationFooter"
+        );
 
-      if (method === 'Ko-fi') {
+      if (
+        method === "Ko-fi"
+      ) {
+
         footer.textContent =
-          'Preview Ko-fi: qui in futuro verrà aperta la pagina reale di donazione.';
+          "Ko-fi verrà collegato quando sarà disponibile un account di donazione.";
+
       }
 
-      if (method === 'NexaGift') {
-        footer.textContent =
-          'Preview NexaGift: qui in futuro verrà aperta l’esperienza pubblicitaria/rewarded.';
-      }
     }
 
     document.addEventListener(
-      'keydown',
+      "keydown",
       event => {
-        if (event.key === 'Escape') {
+
+        if (
+          event.key === "Escape"
+        ) {
+
           closeDonationModal();
+
         }
+
       }
     );
 
+    /* =========================
+       BACKGROUND CANVAS
+       ========================= */
+
     const canvas =
-      document.getElementById('touch-canvas');
+      document.getElementById(
+        "touch-canvas"
+      );
 
     const ctx =
-      canvas.getContext('2d');
+      canvas.getContext(
+        "2d"
+      );
 
     let width;
     let height;
@@ -1296,40 +1746,72 @@
     };
 
     function initCanvas() {
-      width = window.innerWidth;
-      height = window.innerHeight;
 
-      canvas.width = width;
-      canvas.height = height;
+      width =
+        window.innerWidth;
+
+      height =
+        window.innerHeight;
+
+      canvas.width =
+        width;
+
+      canvas.height =
+        height;
 
       dots = [];
 
-      for (let i = 0; i < 160; i++) {
+      for (
+        let i = 0;
+        i < 160;
+        i++
+      ) {
+
         dots.push({
-          x: Math.random() * width,
-          y: Math.random() * height,
+          x:
+            Math.random() *
+            width,
+
+          y:
+            Math.random() *
+            height,
+
           ox: 0,
+
           oy: 0,
-          base: 0.05 + Math.random() * 0.05,
-          size: 1 + Math.random() * 0.8
+
+          base:
+            0.05 +
+            Math.random() *
+            0.05,
+
+          size:
+            1 +
+            Math.random() *
+            0.8
         });
       }
     }
 
     window.addEventListener(
-      'resize',
+      "resize",
       initCanvas
     );
 
     window.addEventListener(
-      'mousemove',
-      e => {
-        mouse.x = e.clientX;
-        mouse.y = e.clientY;
+      "mousemove",
+      event => {
+
+        mouse.x =
+          event.clientX;
+
+        mouse.y =
+          event.clientY;
       }
     );
 
     function animate() {
+
       ctx.clearRect(
         0,
         0,
@@ -1338,8 +1820,12 @@
       );
 
       dots.forEach(d => {
-        const dx = mouse.x - d.x;
-        const dy = mouse.y - d.y;
+
+        const dx =
+          mouse.x - d.x;
+
+        const dy =
+          mouse.y - d.y;
 
         const dist =
           Math.sqrt(
@@ -1350,10 +1836,16 @@
         let pullX = 0;
         let pullY = 0;
 
-        let alpha = d.base;
-        let size = d.size;
+        let alpha =
+          d.base;
 
-        if (dist < 130) {
+        let size =
+          d.size;
+
+        if (
+          dist < 130
+        ) {
+
           const force =
             1 -
             dist / 130;
