@@ -1,19 +1,28 @@
-
 <!DOCTYPE html>
+
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NexaNova</title>
+
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap"
+    rel="stylesheet"
+  />
 
   <style>
-    * { font-family: 'Space Mono', monospace; box-sizing: border-box; }
+    * {
+      font-family: 'Space Mono', monospace;
+      box-sizing: border-box;
+    }
 
-    html, body {
+    html,
+    body {
       width: 100vw;
       margin: 0;
       padding: 0;
@@ -118,9 +127,11 @@
       position: absolute;
       width: 14px;
       height: 14px;
-      border-color: rgba(17,17,17,0.22);
+      border-color: rgba(17, 17, 17, 0.22);
       border-style: solid;
-      transition: border-color 0.25s ease, transform 0.25s ease;
+      transition:
+        border-color 0.25s ease,
+        transform 0.25s ease;
       pointer-events: none;
     }
 
@@ -164,7 +175,7 @@
     }
 
     .search-frame input::placeholder {
-      color: rgba(17,17,17,0.35);
+      color: rgba(17, 17, 17, 0.35);
     }
 
     .search-btn {
@@ -195,7 +206,189 @@
       font-size: 0.65rem;
       letter-spacing: 0.25em;
       text-transform: uppercase;
-      color: rgba(17,17,17,0.38);
+      color: rgba(17, 17, 17, 0.38);
+    }
+
+    .donate-btn {
+      margin-top: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 9px 18px;
+      border: 1px solid rgba(17, 17, 17, 0.22);
+      color: #111111;
+      text-decoration: none;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      background: transparent;
+      cursor: pointer;
+      transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+    }
+
+    .donate-btn:hover {
+      background: #111111;
+      color: #f4f2ec;
+      border-color: #111111;
+      transform: translateY(-2px);
+    }
+
+    .donate-btn:active {
+      transform: translateY(0);
+    }
+
+    .donate-heart {
+      font-size: 0.9rem;
+      line-height: 1;
+      transition: transform 0.2s ease;
+    }
+
+    .donate-btn:hover .donate-heart {
+      transform: scale(1.15);
+    }
+
+    .donation-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(17, 17, 17, 0.28);
+      backdrop-filter: blur(8px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .donation-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .donation-modal {
+      width: 100%;
+      max-width: 520px;
+      background: #f4f2ec;
+      border: 1px solid rgba(17, 17, 17, 0.12);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.18);
+      padding: 30px;
+      transform: translateY(18px) scale(0.98);
+      transition: transform 0.25s ease;
+      position: relative;
+    }
+
+    .donation-overlay.open .donation-modal {
+      transform: translateY(0) scale(1);
+    }
+
+    .donation-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 32px;
+      height: 32px;
+      border: 1px solid rgba(17, 17, 17, 0.18);
+      background: transparent;
+      color: #111111;
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+      transition: all 0.2s ease;
+    }
+
+    .donation-close:hover {
+      background: #111111;
+      color: #f4f2ec;
+    }
+
+    .donation-kicker {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(17, 17, 17, 0.4);
+      margin-bottom: 10px;
+    }
+
+    .donation-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .donation-description {
+      margin-top: 12px;
+      font-size: 0.8rem;
+      line-height: 1.6;
+      color: rgba(17, 17, 17, 0.6);
+    }
+
+    .donation-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 26px;
+    }
+
+    .donation-option {
+      border: 1px solid rgba(17, 17, 17, 0.16);
+      background: rgba(255, 255, 255, 0.35);
+      padding: 20px;
+      text-align: left;
+      cursor: pointer;
+      transition:
+        transform 0.2s ease,
+        background 0.2s ease,
+        border-color 0.2s ease;
+    }
+
+    .donation-option:hover {
+      transform: translateY(-3px);
+      background: rgba(255, 255, 255, 0.72);
+      border-color: rgba(17, 17, 17, 0.35);
+    }
+
+    .donation-option-icon {
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+    }
+
+    .donation-option-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .donation-option-text {
+      font-size: 0.7rem;
+      line-height: 1.5;
+      color: rgba(17, 17, 17, 0.58);
+    }
+
+    .donation-preview-badge {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 4px 7px;
+      border: 1px solid rgba(17, 17, 17, 0.14);
+      font-size: 0.55rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(17, 17, 17, 0.45);
+    }
+
+    .donation-footer {
+      margin-top: 20px;
+      font-size: 0.62rem;
+      line-height: 1.5;
+      color: rgba(17, 17, 17, 0.38);
+      text-align: center;
     }
 
     .results-top-bar {
@@ -240,7 +433,8 @@
       padding: 120px 40px 100px;
       opacity: 0;
       transform: translateY(40px);
-      transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      transition:
+        all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
       display: none;
     }
 
@@ -255,8 +449,8 @@
       font-size: 0.7rem;
       letter-spacing: 0.22em;
       text-transform: uppercase;
-      color: rgba(17,17,17,0.34);
-      border-bottom: 1px solid rgba(17,17,17,0.08);
+      color: rgba(17, 17, 17, 0.34);
+      border-bottom: 1px solid rgba(17, 17, 17, 0.08);
       padding-bottom: 14px;
     }
 
@@ -264,7 +458,7 @@
       margin-bottom: 28px;
       position: relative;
       padding: 20px;
-      background: rgba(255,255,255,0.4);
+      background: rgba(255, 255, 255, 0.4);
       border-radius: 4px;
       transition: transform 0.2s ease;
     }
@@ -282,7 +476,7 @@
 
     .res-url {
       font-size: 0.7rem;
-      color: rgba(17,17,17,0.5);
+      color: rgba(17, 17, 17, 0.5);
       word-break: break-all;
     }
 
@@ -315,7 +509,7 @@
     .res-desc {
       font-size: 0.85rem;
       line-height: 1.6;
-      color: rgba(17,17,17,0.6);
+      color: rgba(17, 17, 17, 0.6);
     }
 
     .pagination-bar {
@@ -324,7 +518,7 @@
       justify-content: space-between;
       margin-top: 40px;
       padding-top: 20px;
-      border-top: 1px solid rgba(17,17,17,0.15);
+      border-top: 1px solid rgba(17, 17, 17, 0.15);
     }
 
     .page-btn {
@@ -363,7 +557,7 @@
       font-size: 0.7rem;
       letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: rgba(17,17,17,0.4);
+      color: rgba(17, 17, 17, 0.4);
       z-index: 5;
     }
 
@@ -372,130 +566,304 @@
       bottom: 0;
       padding: 40px 0;
     }
+
+    @media (max-width: 700px) {
+      header {
+        padding: 24px 22px;
+      }
+
+      body.results-active header {
+        padding: 16px 22px;
+      }
+
+      .home-section {
+        max-width: 100%;
+        padding: 0 20px;
+        margin-top: -90px;
+      }
+
+      .logo-img {
+        width: 340px;
+        height: 190px;
+        transform: scale(1.2);
+      }
+
+      .results-top-bar {
+        width: calc(100vw - 40px);
+      }
+
+      .results-container {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+
+      .donation-options {
+        grid-template-columns: 1fr;
+      }
+
+      .donation-modal {
+        padding: 24px;
+      }
+    }
   </style>
+
 </head>
 
 <body>
 
-  <canvas id="touch-canvas"></canvas>
+<canvas id="touch-canvas"></canvas>
 
   <header>
     <div class="brand" onclick="goHome()">
       <div class="brand-dot"></div>
     </div>
 
-    <div class="clock" id="clock">00:00:00</div>
+```
+<div class="clock" id="clock">00:00:00</div>
+```
+
   </header>
 
   <div class="results-top-bar">
-    <form class="search-frame" onsubmit="return handleSearch(event, 'top')">
-      <div class="corner tl"></div>
-      <div class="corner tr"></div>
-      <div class="corner bl"></div>
-      <div class="corner br"></div>
-
-      <input
-        type="text"
-        id="topQuery"
-        placeholder="Cerca ancora..."
-        autocomplete="off"
-      />
-
-      <button
-        type="submit"
-        class="search-btn"
-        aria-label="Cerca"
-      >
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2.5"
-        >
-          <line x1="5" y1="12" x2="19" y2="12"></line>
-          <polyline points="12 5 19 12 12 19"></polyline>
-        </svg>
-      </button>
-    </form>
-  </div>
-
-  <main class="home-section" id="homeSection">
-
-    <img
-      src="logo.png"
-      alt="NexaNova logo"
-      class="logo-img"
-    />
-
     <form
       class="search-frame"
-      onsubmit="return handleSearch(event, 'home')"
+      onsubmit="return handleSearch(event, 'top')"
     >
       <div class="corner tl"></div>
       <div class="corner tr"></div>
       <div class="corner bl"></div>
       <div class="corner br"></div>
 
-      <input
-        type="text"
-        id="homeQuery"
-        placeholder="Inizia a digitare"
-        autocomplete="off"
-      />
+```
+  <input
+    type="text"
+    id="topQuery"
+    placeholder="Cerca ancora..."
+    autocomplete="off"
+  />
 
-      <button
-        type="submit"
-        class="search-btn"
-        aria-label="Cerca"
-      >
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2.5"
-        >
-          <line x1="5" y1="12" x2="19" y2="12"></line>
-          <polyline points="12 5 19 12 12 19"></polyline>
-        </svg>
-      </button>
-    </form>
+  <button
+    type="submit"
+    class="search-btn"
+    aria-label="Cerca"
+  >
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2.5"
+    >
+      <line x1="5" y1="12" x2="19" y2="12"></line>
+      <polyline points="12 5 19 12 12 19"></polyline>
+    </svg>
+  </button>
+</form>
+```
 
-    <p class="hint">Premi invio per cercare</p>
+  </div>
+
+  <main class="home-section" id="homeSection">
+
+```
+<img
+  src="logo.png"
+  alt="NexaNova logo"
+  class="logo-img"
+/>
+
+<form
+  class="search-frame"
+  onsubmit="return handleSearch(event, 'home')"
+>
+  <div class="corner tl"></div>
+  <div class="corner tr"></div>
+  <div class="corner bl"></div>
+  <div class="corner br"></div>
+
+  <input
+    type="text"
+    id="homeQuery"
+    placeholder="Inizia a digitare"
+    autocomplete="off"
+  />
+
+  <button
+    type="submit"
+    class="search-btn"
+    aria-label="Cerca"
+  >
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2.5"
+    >
+      <line x1="5" y1="12" x2="19" y2="12"></line>
+      <polyline points="12 5 19 12 12 19"></polyline>
+    </svg>
+  </button>
+</form>
+
+<p class="hint">
+  Premi invio per cercare
+</p>
+
+<button
+  type="button"
+  class="donate-btn"
+  onclick="openDonationModal()"
+>
+  <span class="donate-heart" aria-hidden="true">♥</span>
+  Dona
+</button>
+```
+
   </main>
 
-  <div class="results-container" id="resultsSection">
+  <div
+    class="results-container"
+    id="resultsSection"
+  >
 
-    <div id="resultsList"></div>
+```
+<div id="resultsList"></div>
 
-    <div class="pagination-bar">
-      <button
-        id="prevBtn"
-        class="page-btn"
-        onclick="changePage(-1)"
-        disabled
-      >
-        ← Precedente
-      </button>
+<div class="pagination-bar">
 
-      <span
-        id="pageIndicator"
-        class="page-indicator"
-      >
-        Pagina 1
+  <button
+    id="prevBtn"
+    class="page-btn"
+    onclick="changePage(-1)"
+    disabled
+  >
+    ← Precedente
+  </button>
+
+  <span
+    id="pageIndicator"
+    class="page-indicator"
+  >
+    Pagina 1
+  </span>
+
+  <button
+    id="nextBtn"
+    class="page-btn"
+    onclick="changePage(1)"
+  >
+    Successiva →
+  </button>
+
+</div>
+```
+
+  </div>
+
+  <div
+    id="donationOverlay"
+    class="donation-overlay"
+    onclick="handleDonationOverlayClick(event)"
+  >
+
+```
+<div
+  class="donation-modal"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="donationTitle"
+>
+
+  <button
+    class="donation-close"
+    type="button"
+    onclick="closeDonationModal()"
+    aria-label="Chiudi"
+  >
+    ×
+  </button>
+
+  <div class="donation-kicker">
+    Supporta NexaNova
+  </div>
+
+  <h2
+    class="donation-title"
+    id="donationTitle"
+  >
+    Scegli come contribuire
+  </h2>
+
+  <p class="donation-description">
+    Puoi supportare NexaNova con una donazione
+    tradizionale oppure tramite il futuro sistema
+    NexaGift.
+  </p>
+
+  <div class="donation-options">
+
+    <button
+      type="button"
+      class="donation-option"
+      onclick="previewDonation('Ko-fi')"
+    >
+      <div class="donation-option-icon">
+        ☕
+      </div>
+
+      <div class="donation-option-title">
+        Ko-fi
+      </div>
+
+      <div class="donation-option-text">
+        Donazione diretta con i tuoi soldi.
+      </div>
+
+      <span class="donation-preview-badge">
+        Preview
       </span>
+    </button>
 
-      <button
-        id="nextBtn"
-        class="page-btn"
-        onclick="changePage(1)"
-      >
-        Successiva →
-      </button>
-    </div>
+    <button
+      type="button"
+      class="donation-option"
+      onclick="previewDonation('NexaGift')"
+    >
+      <div class="donation-option-icon">
+        🎁
+      </div>
+
+      <div class="donation-option-title">
+        NexaGift
+      </div>
+
+      <div class="donation-option-text">
+        Supporta NexaNova partecipando
+        volontariamente a contenuti pubblicitari
+        compatibili con il sistema.
+      </div>
+
+      <span class="donation-preview-badge">
+        Preview
+      </span>
+    </button>
+
+  </div>
+
+  <div
+    class="donation-footer"
+    id="donationFooter"
+  >
+    Questa è una schermata di anteprima.
+    Nessun pagamento o annuncio viene eseguito.
+  </div>
+
+</div>
+```
+
   </div>
 
   <footer>
@@ -604,9 +972,7 @@
         );
 
         if (!response.ok) {
-          throw new Error(
-            `HTTP ${response.status}`
-          );
+          throw new Error(`HTTP ${response.status}`);
         }
 
         const data = await response.json();
@@ -838,13 +1204,8 @@
         'results-active'
       );
 
-      document.getElementById(
-        'homeQuery'
-      ).value = '';
-
-      document.getElementById(
-        'topQuery'
-      ).value = '';
+      document.getElementById('homeQuery').value = '';
+      document.getElementById('topQuery').value = '';
 
       currentQuery = "";
       currentPage = 1;
@@ -853,21 +1214,74 @@
     }
 
     function updateClock() {
-      document.getElementById(
-        'clock'
-      ).textContent =
-        new Date().toLocaleTimeString(
-          'it-IT'
-        );
+      document.getElementById('clock').textContent =
+        new Date().toLocaleTimeString('it-IT');
     }
 
     setInterval(updateClock, 1000);
     updateClock();
 
+    function openDonationModal() {
+      const overlay =
+        document.getElementById('donationOverlay');
+
+      overlay.classList.add('open');
+
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeDonationModal() {
+      const overlay =
+        document.getElementById('donationOverlay');
+
+      overlay.classList.remove('open');
+
+      if (
+        !document.body.classList.contains(
+          'results-active'
+        )
+      ) {
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.body.style.overflow = 'auto';
+      }
+    }
+
+    function handleDonationOverlayClick(event) {
+      if (
+        event.target.id ===
+        'donationOverlay'
+      ) {
+        closeDonationModal();
+      }
+    }
+
+    function previewDonation(method) {
+      const footer =
+        document.getElementById('donationFooter');
+
+      if (method === 'Ko-fi') {
+        footer.textContent =
+          'Preview Ko-fi: qui in futuro verrà aperta la pagina reale di donazione.';
+      }
+
+      if (method === 'NexaGift') {
+        footer.textContent =
+          'Preview NexaGift: qui in futuro verrà aperta l’esperienza pubblicitaria/rewarded.';
+      }
+    }
+
+    document.addEventListener(
+      'keydown',
+      event => {
+        if (event.key === 'Escape') {
+          closeDonationModal();
+        }
+      }
+    );
+
     const canvas =
-      document.getElementById(
-        'touch-canvas'
-      );
+      document.getElementById('touch-canvas');
 
     const ctx =
       canvas.getContext('2d');
@@ -892,22 +1306,12 @@
 
       for (let i = 0; i < 160; i++) {
         dots.push({
-          x:
-            Math.random() * width,
-
-          y:
-            Math.random() * height,
-
+          x: Math.random() * width,
+          y: Math.random() * height,
           ox: 0,
           oy: 0,
-
-          base:
-            0.05 +
-            Math.random() * 0.05,
-
-          size:
-            1 +
-            Math.random() * 0.8
+          base: 0.05 + Math.random() * 0.05,
+          size: 1 + Math.random() * 0.8
         });
       }
     }
@@ -934,11 +1338,8 @@
       );
 
       dots.forEach(d => {
-        const dx =
-          mouse.x - d.x;
-
-        const dy =
-          mouse.y - d.y;
+        const dx = mouse.x - d.x;
+        const dy = mouse.y - d.y;
 
         const dist =
           Math.sqrt(
@@ -1017,4 +1418,3 @@
 
 </body>
 </html>
-```
