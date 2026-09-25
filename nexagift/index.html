@@ -1,0 +1,1425 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>NexaGift — NexaNova</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: "Space Mono", monospace;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+
+    body {
+      background: #f4f2ec;
+      color: #111111;
+    }
+
+    /* =========================
+       BACKGROUND
+       ========================= */
+
+    #touch-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* =========================
+       HEADER
+       ========================= */
+
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+
+      width: 100%;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      padding: 32px 40px;
+
+      z-index: 50;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .brand-dot {
+      width: 10px;
+      height: 10px;
+      background: #111111;
+    }
+
+    .clock {
+      margin-left: auto;
+
+      font-size: 0.8rem;
+      font-weight: 700;
+
+      letter-spacing: 0.08em;
+    }
+
+    /* =========================
+       PAGE
+       ========================= */
+
+    .page {
+      position: relative;
+      z-index: 10;
+
+      min-height: 100vh;
+
+      display: flex;
+      flex-direction: column;
+
+      align-items: center;
+      justify-content: center;
+
+      padding: 120px 24px 70px;
+    }
+
+    /* =========================
+       MAIN CARD
+       ========================= */
+
+    .nexagift-container {
+      width: 100%;
+      max-width: 640px;
+
+      text-align: center;
+    }
+
+    .eyebrow {
+      font-size: 0.62rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+
+      color: rgba(17, 17, 17, 0.38);
+
+      margin-bottom: 12px;
+    }
+
+    .title {
+      margin: 0;
+
+      font-size: 2.8rem;
+      line-height: 1;
+
+      font-weight: 700;
+      letter-spacing: -0.05em;
+    }
+
+    .subtitle {
+      max-width: 480px;
+
+      margin: 18px auto 0;
+
+      font-size: 0.78rem;
+      line-height: 1.7;
+
+      color: rgba(17, 17, 17, 0.56);
+    }
+
+    /* =========================
+       MAIN PANEL
+       ========================= */
+
+    .panel {
+      margin-top: 35px;
+
+      width: 100%;
+
+      padding: 30px;
+
+      background: rgba(255, 255, 255, 0.36);
+
+      border: 1px solid rgba(17, 17, 17, 0.12);
+
+      text-align: left;
+
+      transition:
+        opacity 0.25s ease,
+        transform 0.25s ease;
+    }
+
+    .panel.hidden {
+      display: none;
+    }
+
+    /* =========================
+       START
+       ========================= */
+
+    .start-content {
+      text-align: center;
+    }
+
+    .gift-symbol {
+      width: 70px;
+      height: 70px;
+
+      margin: 0 auto 22px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      border: 1px solid rgba(17, 17, 17, 0.15);
+
+      font-size: 1.8rem;
+    }
+
+    .panel-title {
+      margin: 0;
+
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    .panel-text {
+      max-width: 450px;
+
+      margin: 12px auto 0;
+
+      font-size: 0.72rem;
+      line-height: 1.7;
+
+      color: rgba(17, 17, 17, 0.55);
+    }
+
+    /* =========================
+       BUTTONS
+       ========================= */
+
+    .primary-btn,
+    .secondary-btn {
+      width: 100%;
+
+      margin-top: 25px;
+
+      padding: 13px 20px;
+
+      border: 1px solid #111111;
+
+      background: #111111;
+      color: #f4f2ec;
+
+      font-size: 0.68rem;
+      font-weight: 700;
+
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+
+      cursor: pointer;
+
+      transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease;
+    }
+
+    .primary-btn:hover {
+      background: #333333;
+
+      transform: translateY(-2px);
+    }
+
+    .secondary-btn {
+      background: transparent;
+      color: #111111;
+    }
+
+    .secondary-btn:hover {
+      background: #111111;
+      color: #f4f2ec;
+    }
+
+    /* =========================
+       AD VIEW
+       ========================= */
+
+    .ad-header {
+      display: flex;
+
+      align-items: center;
+      justify-content: space-between;
+
+      padding-bottom: 12px;
+
+      border-bottom:
+        1px solid
+        rgba(17, 17, 17, 0.10);
+
+      font-size: 0.55rem;
+
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+
+      color: rgba(17, 17, 17, 0.4);
+    }
+
+    .ad-box {
+      margin-top: 20px;
+
+      min-height: 280px;
+
+      border:
+        1px solid
+        rgba(17, 17, 17, 0.12);
+
+      background:
+        rgba(255, 255, 255, 0.48);
+
+      display: flex;
+      flex-direction: column;
+
+      align-items: center;
+      justify-content: center;
+
+      padding: 30px;
+    }
+
+    .ad-label {
+      font-size: 0.55rem;
+
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+
+      color:
+        rgba(17, 17, 17, 0.35);
+    }
+
+    .ad-visual {
+      width: 100%;
+      height: 150px;
+
+      margin-top: 16px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      border:
+        1px solid
+        rgba(17, 17, 17, 0.10);
+
+      background:
+        rgba(17, 17, 17, 0.035);
+
+      font-size: 2.3rem;
+      font-weight: 700;
+
+      letter-spacing: 0.15em;
+    }
+
+    .ad-title {
+      margin: 18px 0 0;
+
+      font-size: 0.95rem;
+
+      font-weight: 700;
+    }
+
+    .ad-description {
+      margin: 8px 0 0;
+
+      text-align: center;
+
+      max-width: 430px;
+
+      font-size: 0.68rem;
+      line-height: 1.6;
+
+      color:
+        rgba(17, 17, 17, 0.52);
+    }
+
+    /* =========================
+       TIMER
+       ========================= */
+
+    .timer-section {
+      margin-top: 25px;
+
+      text-align: center;
+    }
+
+    .timer {
+      font-size: 2.6rem;
+
+      font-weight: 700;
+
+      line-height: 1;
+    }
+
+    .timer-label {
+      margin-top: 7px;
+
+      font-size: 0.55rem;
+
+      letter-spacing: 0.16em;
+
+      text-transform: uppercase;
+
+      color:
+        rgba(17, 17, 17, 0.38);
+    }
+
+    /* =========================
+       SUCCESS
+       ========================= */
+
+    .success-content {
+      text-align: center;
+    }
+
+    .success-symbol {
+      width: 70px;
+      height: 70px;
+
+      margin: 0 auto 22px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      border:
+        1px solid
+        rgba(17, 17, 17, 0.15);
+
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .stats {
+      display: grid;
+
+      grid-template-columns: 1fr 1fr;
+
+      gap: 12px;
+
+      margin-top: 25px;
+    }
+
+    .stat {
+      padding: 18px;
+
+      border:
+        1px solid
+        rgba(17, 17, 17, 0.12);
+
+      text-align: center;
+    }
+
+    .stat-value {
+      display: block;
+
+      font-size: 1.35rem;
+      font-weight: 700;
+    }
+
+    .stat-label {
+      display: block;
+
+      margin-top: 5px;
+
+      font-size: 0.55rem;
+
+      letter-spacing: 0.1em;
+
+      text-transform: uppercase;
+
+      color:
+        rgba(17, 17, 17, 0.40);
+    }
+
+    .demo-note {
+      margin-top: 20px;
+
+      font-size: 0.58rem;
+
+      line-height: 1.6;
+
+      color:
+        rgba(17, 17, 17, 0.36);
+    }
+
+    /* =========================
+       SESSION TOP INFO
+       ========================= */
+
+    .session-info {
+      display: flex;
+
+      justify-content: space-between;
+
+      gap: 20px;
+
+      margin-top: 18px;
+
+      font-size: 0.58rem;
+
+      letter-spacing: 0.08em;
+
+      text-transform: uppercase;
+
+      color:
+        rgba(17, 17, 17, 0.4);
+    }
+
+    /* =========================
+       FOOTER
+       ========================= */
+
+    footer {
+      margin-top: 28px;
+
+      font-size: 0.58rem;
+
+      letter-spacing: 0.14em;
+
+      text-transform: uppercase;
+
+      color:
+        rgba(17, 17, 17, 0.35);
+    }
+
+    /* =========================
+       MOBILE
+       ========================= */
+
+    @media (max-width: 700px) {
+
+      header {
+        padding:
+          24px 22px;
+      }
+
+      .page {
+        padding:
+          100px 18px 50px;
+      }
+
+      .title {
+        font-size: 2.25rem;
+      }
+
+      .panel {
+        padding: 22px;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .ad-box {
+        min-height: 250px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <canvas id="touch-canvas"></canvas>
+
+  <!-- HEADER -->
+
+  <header>
+
+    <div
+      class="brand"
+      onclick="goHome()"
+      title="Torna a NexaNova"
+    >
+      <div class="brand-dot"></div>
+    </div>
+
+    <div
+      class="clock"
+      id="clock"
+    >
+      00:00:00
+    </div>
+
+  </header>
+
+  <!-- MAIN -->
+
+  <main class="page">
+
+    <div class="nexagift-container">
+
+      <div class="eyebrow">
+        NEXANOVA
+      </div>
+
+      <h1 class="title">
+        NexaGift
+      </h1>
+
+      <p class="subtitle">
+        Una nuova modalità per contribuire
+        al progetto NexaNova attraverso
+        contenuti sponsorizzati.
+      </p>
+
+      <!-- =========================
+           START PANEL
+           ========================= -->
+
+      <section
+        id="startPanel"
+        class="panel"
+      >
+
+        <div class="start-content">
+
+          <div class="gift-symbol">
+            🎁
+          </div>
+
+          <h2 class="panel-title">
+            Inizia una sessione
+          </h2>
+
+          <p class="panel-text">
+            Scegli volontariamente di partecipare
+            alla sessione NexaGift. In questa
+            versione di test l'annuncio è simulato.
+          </p>
+
+          <button
+            id="startButton"
+            class="primary-btn"
+            type="button"
+          >
+            Inizia NexaGift
+          </button>
+
+        </div>
+
+      </section>
+
+      <!-- =========================
+           AD PANEL
+           ========================= -->
+
+      <section
+        id="adPanel"
+        class="panel hidden"
+      >
+
+        <div class="ad-header">
+
+          <span>
+            NEXAGIFT
+          </span>
+
+          <span id="adType">
+            DEMO
+          </span>
+
+        </div>
+
+        <div class="session-info">
+
+          <span>
+            Sessione
+          </span>
+
+          <span id="completedCount">
+            0 completati
+          </span>
+
+        </div>
+
+        <div class="ad-box">
+
+          <div class="ad-label">
+            CONTENUTO SPONSORIZZATO DEMO
+          </div>
+
+          <div
+            class="ad-visual"
+            id="adVisual"
+          >
+            AD
+          </div>
+
+          <h2
+            class="ad-title"
+            id="adTitle"
+          >
+            Annuncio demo
+          </h2>
+
+          <p
+            class="ad-description"
+            id="adDescription"
+          >
+            Questo spazio verrà successivamente
+            sostituito da un vero contenuto
+            pubblicitario.
+          </p>
+
+        </div>
+
+        <div class="timer-section">
+
+          <div
+            class="timer"
+            id="timer"
+          >
+            10
+          </div>
+
+          <div class="timer-label">
+            secondo rimanente
+          </div>
+
+        </div>
+
+        <button
+          id="stopButton"
+          class="secondary-btn"
+          type="button"
+        >
+          Termina sessione
+        </button>
+
+      </section>
+
+      <!-- =========================
+           SUCCESS PANEL
+           ========================= -->
+
+      <section
+        id="successPanel"
+        class="panel hidden"
+      >
+
+        <div class="success-content">
+
+          <div class="success-symbol">
+            ✓
+          </div>
+
+          <h2 class="panel-title">
+            NexaGift completato
+          </h2>
+
+          <p class="panel-text">
+            Il contenuto demo è stato completato.
+          </p>
+
+          <div class="stats">
+
+            <div class="stat">
+
+              <span
+                class="stat-value"
+                id="adsCompleted"
+              >
+                0
+              </span>
+
+              <span class="stat-label">
+                contenuti completati
+              </span>
+
+            </div>
+
+            <div class="stat">
+
+              <span
+                class="stat-value"
+                id="totalTime"
+              >
+                0s
+              </span>
+
+              <span class="stat-label">
+                tempo sessione
+              </span>
+
+            </div>
+
+          </div>
+
+          <p class="demo-note">
+            DEMO — nessun annuncio reale,
+            pagamento o ricavo viene generato
+            in questa versione.
+          </p>
+
+          <button
+            id="anotherButton"
+            class="primary-btn"
+            type="button"
+          >
+            Guarda un altro
+          </button>
+
+          <button
+            id="homeButton"
+            class="secondary-btn"
+            type="button"
+          >
+            Torna a NexaNova
+          </button>
+
+        </div>
+
+      </section>
+
+      <footer>
+        NexaGift · NexaNova
+      </footer>
+
+    </div>
+
+  </main>
+
+  <script>
+
+    /* =========================
+       PANELS
+       ========================= */
+
+    const startPanel =
+      document.getElementById(
+        "startPanel"
+      );
+
+    const adPanel =
+      document.getElementById(
+        "adPanel"
+      );
+
+    const successPanel =
+      document.getElementById(
+        "successPanel"
+      );
+
+    /* =========================
+       BUTTONS
+       ========================= */
+
+    const startButton =
+      document.getElementById(
+        "startButton"
+      );
+
+    const stopButton =
+      document.getElementById(
+        "stopButton"
+      );
+
+    const anotherButton =
+      document.getElementById(
+        "anotherButton"
+      );
+
+    const homeButton =
+      document.getElementById(
+        "homeButton"
+      );
+
+    /* =========================
+       ELEMENTS
+       ========================= */
+
+    const timer =
+      document.getElementById(
+        "timer"
+      );
+
+    const adType =
+      document.getElementById(
+        "adType"
+      );
+
+    const adVisual =
+      document.getElementById(
+        "adVisual"
+      );
+
+    const adTitle =
+      document.getElementById(
+        "adTitle"
+      );
+
+    const adDescription =
+      document.getElementById(
+        "adDescription"
+      );
+
+    const completedCount =
+      document.getElementById(
+        "completedCount"
+      );
+
+    const adsCompleted =
+      document.getElementById(
+        "adsCompleted"
+      );
+
+    const totalTime =
+      document.getElementById(
+        "totalTime"
+      );
+
+    /* =========================
+       SESSION
+       ========================= */
+
+    let countdown = 10;
+
+    let timerInterval = null;
+
+    let sessionAds = 0;
+
+    let sessionSeconds = 0;
+
+    let sessionRunning = false;
+
+    /* =========================
+       PANEL SWITCH
+       ========================= */
+
+    function showPanel(
+      panel
+    ) {
+
+      startPanel.classList.add(
+        "hidden"
+      );
+
+      adPanel.classList.add(
+        "hidden"
+      );
+
+      successPanel.classList.add(
+        "hidden"
+      );
+
+      panel.classList.remove(
+        "hidden"
+      );
+
+    }
+
+    /* =========================
+       PREPARE DEMO AD
+       ========================= */
+
+    function prepareAd() {
+
+      const video =
+        Math.random() <
+        0.5;
+
+      if (video) {
+
+        adType.textContent =
+          "VIDEO DEMO";
+
+        adVisual.textContent =
+          "▶";
+
+        adTitle.textContent =
+          "Video sponsorizzato demo";
+
+        adDescription.textContent =
+          "Simulazione di un contenuto video pubblicitario.";
+
+      } else {
+
+        adType.textContent =
+          "DISPLAY DEMO";
+
+        adVisual.textContent =
+          "AD";
+
+        adTitle.textContent =
+          "Annuncio display demo";
+
+        adDescription.textContent =
+          "Simulazione di un normale annuncio pubblicitario.";
+
+      }
+
+    }
+
+    /* =========================
+       START SESSION
+       ========================= */
+
+    function startSession() {
+
+      sessionAds = 0;
+
+      sessionSeconds = 0;
+
+      sessionRunning = true;
+
+      completedCount.textContent =
+        "0 completati";
+
+      startAd();
+
+    }
+
+    /* =========================
+       START AD
+       ========================= */
+
+    function startAd() {
+
+      clearInterval(
+        timerInterval
+      );
+
+      prepareAd();
+
+      countdown = 10;
+
+      timer.textContent =
+        countdown;
+
+      updateTimerLabel();
+
+      showPanel(
+        adPanel
+      );
+
+      timerInterval =
+        setInterval(
+          () => {
+
+            countdown--;
+
+            sessionSeconds++;
+
+            timer.textContent =
+              countdown;
+
+            updateTimerLabel();
+
+            if (
+              countdown <= 0
+            ) {
+
+              clearInterval(
+                timerInterval
+              );
+
+              completeAd();
+
+            }
+
+          },
+          1000
+        );
+
+    }
+
+    /* =========================
+       TIMER LABEL
+       ========================= */
+
+    function updateTimerLabel() {
+
+      const label =
+        timer.parentElement
+          .querySelector(
+            ".timer-label"
+          );
+
+      if (
+        countdown === 1
+      ) {
+
+        label.textContent =
+          "secondo rimanente";
+
+      } else {
+
+        label.textContent =
+          "secondi rimanenti";
+
+      }
+
+    }
+
+    /* =========================
+       COMPLETE
+       ========================= */
+
+    function completeAd() {
+
+      sessionAds++;
+
+      sessionRunning = false;
+
+      completedCount.textContent =
+        `${sessionAds} completati`;
+
+      adsCompleted.textContent =
+        sessionAds;
+
+      totalTime.textContent =
+        `${sessionSeconds}s`;
+
+      showPanel(
+        successPanel
+      );
+
+    }
+
+    /* =========================
+       STOP
+       ========================= */
+
+    function stopSession() {
+
+      clearInterval(
+        timerInterval
+      );
+
+      sessionRunning = false;
+
+      sessionAds = 0;
+
+      sessionSeconds = 0;
+
+      showPanel(
+        startPanel
+      );
+
+    }
+
+    /* =========================
+       HOME
+       ========================= */
+
+    function goHome() {
+
+      window.location.href =
+        "/";
+
+    }
+
+    /* =========================
+       EVENTS
+       ========================= */
+
+    startButton.addEventListener(
+      "click",
+      () => {
+
+        startSession();
+
+      }
+    );
+
+    stopButton.addEventListener(
+      "click",
+      () => {
+
+        stopSession();
+
+      }
+    );
+
+    anotherButton.addEventListener(
+      "click",
+      () => {
+
+        if (
+          !sessionRunning
+        ) {
+
+          startAd();
+
+        }
+
+      }
+    );
+
+    homeButton.addEventListener(
+      "click",
+      () => {
+
+        goHome();
+
+      }
+    );
+
+    /* =========================
+       CLOCK
+       ========================= */
+
+    function updateClock() {
+
+      document.getElementById(
+        "clock"
+      ).textContent =
+        new Date().toLocaleTimeString(
+          "it-IT"
+        );
+
+    }
+
+    setInterval(
+      updateClock,
+      1000
+    );
+
+    updateClock();
+
+    /* =========================
+       BACKGROUND DOTS
+       ========================= */
+
+    const canvas =
+      document.getElementById(
+        "touch-canvas"
+      );
+
+    const ctx =
+      canvas.getContext(
+        "2d"
+      );
+
+    let width;
+    let height;
+
+    let dots = [];
+
+    const mouse = {
+      x: -1000,
+      y: -1000
+    };
+
+    function initCanvas() {
+
+      width =
+        window.innerWidth;
+
+      height =
+        window.innerHeight;
+
+      canvas.width =
+        width;
+
+      canvas.height =
+        height;
+
+      dots = [];
+
+      for (
+        let i = 0;
+        i < 160;
+        i++
+      ) {
+
+        dots.push({
+
+          x:
+            Math.random() *
+            width,
+
+          y:
+            Math.random() *
+            height,
+
+          ox: 0,
+
+          oy: 0,
+
+          base:
+            0.05 +
+            Math.random() *
+            0.05,
+
+          size:
+            1 +
+            Math.random() *
+            0.8
+
+        });
+
+      }
+
+    }
+
+    window.addEventListener(
+      "resize",
+      initCanvas
+    );
+
+    window.addEventListener(
+      "mousemove",
+      event => {
+
+        mouse.x =
+          event.clientX;
+
+        mouse.y =
+          event.clientY;
+
+      }
+    );
+
+    function animate() {
+
+      ctx.clearRect(
+        0,
+        0,
+        width,
+        height
+      );
+
+      dots.forEach(
+        d => {
+
+          const dx =
+            mouse.x -
+            d.x;
+
+          const dy =
+            mouse.y -
+            d.y;
+
+          const dist =
+            Math.sqrt(
+              dx * dx +
+              dy * dy
+            );
+
+          let pullX = 0;
+
+          let pullY = 0;
+
+          let alpha =
+            d.base;
+
+          let size =
+            d.size;
+
+          if (
+            dist < 130
+          ) {
+
+            const force =
+              1 -
+              dist / 130;
+
+            const angle =
+              Math.atan2(
+                dy,
+                dx
+              );
+
+            pullX =
+              -Math.cos(
+                angle
+              ) *
+              force *
+              20;
+
+            pullY =
+              -Math.sin(
+                angle
+              ) *
+              force *
+              20;
+
+            alpha =
+              d.base +
+              force *
+              0.6;
+
+            size =
+              d.size +
+              force *
+              1.5;
+
+          }
+
+          d.ox +=
+            (pullX -
+              d.ox) *
+            0.1;
+
+          d.oy +=
+            (pullY -
+              d.oy) *
+            0.1;
+
+          ctx.beginPath();
+
+          ctx.arc(
+            d.x + d.ox,
+            d.y + d.oy,
+            size,
+            0,
+            Math.PI * 2
+          );
+
+          ctx.fillStyle =
+            `rgba(
+              17,
+              17,
+              17,
+              ${alpha}
+            )`;
+
+          ctx.fill();
+
+        }
+      );
+
+      requestAnimationFrame(
+        animate
+      );
+
+    }
+
+    initCanvas();
+
+    animate();
+
+  </script>
+
+</body>
+</html>
