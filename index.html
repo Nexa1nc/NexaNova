@@ -98,8 +98,8 @@
       align-items: center;
       margin: 0 auto;
       min-height: 100vh;
-      justify-content: center;
-      margin-top: -150px;
+      justify-content: flex-end;
+      padding-bottom: 150px;
       transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
@@ -207,50 +207,6 @@
       letter-spacing: 0.25em;
       text-transform: uppercase;
       color: rgba(17, 17, 17, 0.38);
-    }
-
-    .donate-btn {
-      margin-top: 18px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 9px 18px;
-      border: 1px solid rgba(17, 17, 17, 0.22);
-      color: #111111;
-      text-decoration: none;
-      font-size: 0.68rem;
-      font-weight: 700;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      background: transparent;
-      cursor: pointer;
-      transition:
-        background 0.2s ease,
-        color 0.2s ease,
-        border-color 0.2s ease,
-        transform 0.2s ease;
-    }
-
-    .donate-btn:hover {
-      background: #111111;
-      color: #f4f2ec;
-      border-color: #111111;
-      transform: translateY(-2px);
-    }
-
-    .donate-btn:active {
-      transform: translateY(0);
-    }
-
-    .donate-heart {
-      font-size: 0.9rem;
-      line-height: 1;
-      transition: transform 0.2s ease;
-    }
-
-    .donate-btn:hover .donate-heart {
-      transform: scale(1.15);
     }
 
     .donation-overlay {
@@ -579,7 +535,7 @@
       .home-section {
         max-width: 100%;
         padding: 0 20px;
-        margin-top: -90px;
+        padding-bottom: 120px;
       }
 
       .logo-img {
@@ -618,251 +574,100 @@
       <div class="brand-dot"></div>
     </div>
 
-
-<div class="clock" id="clock">00:00:00</div>
-
-
+    <div class="clock" id="clock">00:00:00</div>
   </header>
 
   <div class="results-top-bar">
-    <form
-      class="search-frame"
-      onsubmit="return handleSearch(event, 'top')"
-    >
+    <form class="search-frame" onsubmit="return handleSearch(event, 'top')">
       <div class="corner tl"></div>
       <div class="corner tr"></div>
       <div class="corner bl"></div>
       <div class="corner br"></div>
 
+      <input
+        type="text"
+        id="topQuery"
+        placeholder="Cerca ancora..."
+        autocomplete="off"
+      />
 
-  <input
-    type="text"
-    id="topQuery"
-    placeholder="Cerca ancora..."
-    autocomplete="off"
-  />
-
-  <button
-    type="submit"
-    class="search-btn"
-    aria-label="Cerca"
-  >
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2.5"
-    >
-      <line x1="5" y1="12" x2="19" y2="12"></line>
-      <polyline points="12 5 19 12 12 19"></polyline>
-    </svg>
-  </button>
-</form>
-```
-
+      <button type="submit" class="search-btn" aria-label="Cerca">
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+        >
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+      </button>
+    </form>
   </div>
 
   <main class="home-section" id="homeSection">
+    <img
+      src="logo.png"
+      alt="NexaNova logo"
+      class="logo-img"
+    />
 
+    <form class="search-frame" onsubmit="return handleSearch(event, 'home')">
+      <div class="corner tl"></div>
+      <div class="corner tr"></div>
+      <div class="corner bl"></div>
+      <div class="corner br"></div>
 
-<img
-  src="logo.png"
-  alt="NexaNova logo"
-  class="logo-img"
-/>
+      <input
+        type="text"
+        id="homeQuery"
+        placeholder="Inizia a digitare"
+        autocomplete="off"
+      />
 
-<form
-  class="search-frame"
-  onsubmit="return handleSearch(event, 'home')"
->
-  <div class="corner tl"></div>
-  <div class="corner tr"></div>
-  <div class="corner bl"></div>
-  <div class="corner br"></div>
+      <button type="submit" class="search-btn" aria-label="Cerca">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+        >
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+      </button>
+    </form>
 
-  <input
-    type="text"
-    id="homeQuery"
-    placeholder="Inizia a digitare"
-    autocomplete="off"
-  />
-
-  <button
-    type="submit"
-    class="search-btn"
-    aria-label="Cerca"
-  >
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2.5"
-    >
-      <line x1="5" y1="12" x2="19" y2="12"></line>
-      <polyline points="12 5 19 12 12 19"></polyline>
-    </svg>
-  </button>
-</form>
-
-<p class="hint">
-  Premi invio per cercare
-</p>
-
-<button
-  type="button"
-  class="donate-btn"
-  onclick="openDonationModal()"
->
-  <span class="donate-heart" aria-hidden="true">♥</span>
-  Dona
-</button>
-```
-
+    <p class="hint">Premi invio per cercare</p>
   </main>
 
-  <div
-    class="results-container"
-    id="resultsSection"
-  >
+  <div class="results-container" id="resultsSection">
+    <div id="resultsList"></div>
 
-```
-<div id="resultsList"></div>
+    <div class="pagination-bar">
+      <button
+        id="prevBtn"
+        class="page-btn"
+        onclick="changePage(-1)"
+        disabled
+      >
+        ← Precedente
+      </button>
 
-<div class="pagination-bar">
+      <span id="pageIndicator" class="page-indicator">Pagina 1</span>
 
-  <button
-    id="prevBtn"
-    class="page-btn"
-    onclick="changePage(-1)"
-    disabled
-  >
-    ← Precedente
-  </button>
-
-  <span
-    id="pageIndicator"
-    class="page-indicator"
-  >
-    Pagina 1
-  </span>
-
-  <button
-    id="nextBtn"
-    class="page-btn"
-    onclick="changePage(1)"
-  >
-    Successiva →
-  </button>
-
-</div>
-
-
-  </div>
-
-  <div
-    id="donationOverlay"
-    class="donation-overlay"
-    onclick="handleDonationOverlayClick(event)"
-  >
-
-<div
-  class="donation-modal"
-  role="dialog"
-  aria-modal="true"
-  aria-labelledby="donationTitle"
->
-
-  <button
-    class="donation-close"
-    type="button"
-    onclick="closeDonationModal()"
-    aria-label="Chiudi"
-  >
-    ×
-  </button>
-
-  <div class="donation-kicker">
-    Supporta NexaNova
-  </div>
-
-  <h2
-    class="donation-title"
-    id="donationTitle"
-  >
-    Scegli come contribuire
-  </h2>
-
-  <p class="donation-description">
-    Puoi supportare NexaNova con una donazione
-    tradizionale oppure tramite il futuro sistema
-    NexaGift.
-  </p>
-
-  <div class="donation-options">
-
-    <button
-      type="button"
-      class="donation-option"
-      onclick="previewDonation('Ko-fi')"
-    >
-      <div class="donation-option-icon">
-        ☕
-      </div>
-
-      <div class="donation-option-title">
-        Ko-fi
-      </div>
-
-      <div class="donation-option-text">
-        Donazione diretta con i tuoi soldi.
-      </div>
-
-      <span class="donation-preview-badge">
-        Preview
-      </span>
-    </button>
-
-    <button
-      type="button"
-      class="donation-option"
-      onclick="previewDonation('NexaGift')"
-    >
-      <div class="donation-option-icon">
-        🎁
-      </div>
-
-      <div class="donation-option-title">
-        NexaGift
-      </div>
-
-      <div class="donation-option-text">
-        Supporta NexaNova partecipando
-        volontariamente a contenuti pubblicitari
-        compatibili con il sistema.
-      </div>
-
-      <span class="donation-preview-badge">
-        Preview
-      </span>
-    </button>
-
-  </div>
-
-  <div
-    class="donation-footer"
-    id="donationFooter"
-  >
-    Questa è una schermata di anteprima.
-    Nessun pagamento o annuncio viene eseguito.
-  </div>
-
-</div>
-```
-
+      <button
+        id="nextBtn"
+        class="page-btn"
+        onclick="changePage(1)"
+      >
+        Successiva →
+      </button>
+    </div>
   </div>
 
   <footer>
@@ -871,13 +676,24 @@
 
   <script>
     const SEARCH_API_URL = '/api/search?q=';
+    const resultsPerPage = 10;
 
     let currentPage = 1;
     let currentQuery = "";
     let allFetchedResults = [];
     let currentSearchTime = 0;
 
-    const resultsPerPage = 10;
+    // Carica query dalla URL al caricamento
+    window.addEventListener('load', () => {
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get('q');
+      if (q) {
+        currentQuery = decodeURIComponent(q);
+        document.getElementById('homeQuery').value = currentQuery;
+        document.getElementById('topQuery').value = currentQuery;
+        showResults(currentQuery, 1);
+      }
+    });
 
     function escapeHtml(value) {
       return String(value ?? "")
@@ -891,18 +707,19 @@
     function safeUrl(value) {
       try {
         const url = new URL(value);
-
-        if (
-          url.protocol !== "http:" &&
-          url.protocol !== "https:"
-        ) {
+        if (url.protocol !== "http:" && url.protocol !== "https:") {
           return "#";
         }
-
         return url.href;
       } catch {
         return "#";
       }
+    }
+
+    function updateURL(query) {
+      const url = new URL(window.location);
+      url.searchParams.set('q', query);
+      window.history.pushState({}, '', url);
     }
 
     function handleSearch(e, type) {
@@ -923,7 +740,8 @@
       document.getElementById('homeQuery').value = currentQuery;
       document.getElementById('topQuery').value = currentQuery;
 
-      showResults(currentQuery, currentPage);
+      updateURL(currentQuery);
+      showResults(currentQuery, 1);
 
       return false;
     }
@@ -975,16 +793,10 @@
         }
 
         const data = await response.json();
-
         const endTime = performance.now();
 
-        currentSearchTime =
-          (endTime - startTime) / 1000;
-
-        allFetchedResults =
-          Array.isArray(data.results)
-            ? data.results
-            : [];
+        currentSearchTime = (endTime - startTime) / 1000;
+        allFetchedResults = Array.isArray(data.results) ? data.results : [];
 
         if (allFetchedResults.length > 0) {
           renderPage();
@@ -996,424 +808,86 @@
               secondi
             </p>
           `;
-
           document.getElementById('nextBtn').disabled = true;
-          document.getElementById('prevBtn').disabled = true;
         }
-
       } catch (error) {
-
-        const endTime = performance.now();
-
-        currentSearchTime =
-          (endTime - startTime) / 1000;
-
-        console.error(
-          "Errore di connessione a NexaNova:",
-          error
-        );
+        console.error('Search error:', error);
 
         list.innerHTML = `
-          <p
-            class="results-label"
-            style="color: red;"
-          >
-            Errore durante la ricerca con NexaNova.
+          <p class="results-label">
+            Errore nella ricerca. Riprova più tardi.
           </p>
         `;
 
         document.getElementById('nextBtn').disabled = true;
-        document.getElementById('prevBtn').disabled = true;
       }
-    }
-
-    function trackClick(pageId) {
-      const numericPageId = Number(pageId);
-
-      if (
-        !Number.isInteger(numericPageId) ||
-        numericPageId <= 0
-      ) {
-        return;
-      }
-
-      const payload = JSON.stringify({
-        action: "click",
-        pageId: numericPageId
-      });
-
-      try {
-        const blob = new Blob(
-          [payload],
-          {
-            type: "application/json"
-          }
-        );
-
-        if (
-          navigator.sendBeacon &&
-          navigator.sendBeacon(
-            "/api/click",
-            blob
-          )
-        ) {
-          return;
-        }
-      } catch {}
-
-      fetch("/api/click", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: payload,
-        keepalive: true
-      }).catch(() => {});
-    }
-
-    function trackImpressions(items) {
-      const pageIds = items
-        .map(item => Number(item.id))
-        .filter(
-          id =>
-            Number.isInteger(id) &&
-            id > 0
-        );
-
-      if (!pageIds.length) {
-        return;
-      }
-
-      fetch("/api/click", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          action: "impression",
-          pageIds
-        }),
-        keepalive: true
-      }).catch(() => {});
     }
 
     function renderPage() {
-      const list =
-        document.getElementById('resultsList');
+      const list = document.getElementById('resultsList');
+      const startIdx = (currentPage - 1) * resultsPerPage;
+      const endIdx = startIdx + resultsPerPage;
+      const pageResults = allFetchedResults.slice(startIdx, endIdx);
 
-      list.innerHTML = `
+      let html = `
         <p class="results-label">
-          Trovati ${allFetchedResults.length}
-          risultati in
-          ${currentSearchTime.toFixed(2)}
-          secondi
+          Trovati ${allFetchedResults.length} risultati in
+          ${currentSearchTime.toFixed(2)} secondi
         </p>
       `;
 
-      const startIndex =
-        (currentPage - 1) * resultsPerPage;
+      pageResults.forEach(result => {
+        const title = escapeHtml(result.title || 'Senza titolo');
+        const url = safeUrl(result.url);
+        const desc = escapeHtml(result.description || '');
+        const verified = result.verified ? '<span class="verified-badge">✓ Verificato</span>' : '';
 
-      const endIndex =
-        startIndex + resultsPerPage;
-
-      const pagePoints =
-        allFetchedResults.slice(
-          startIndex,
-          endIndex
-        );
-
-      pagePoints.forEach(item => {
-        const url = safeUrl(item.url);
-
-        const title = escapeHtml(
-          item.title || item.url
-        );
-
-        const desc = escapeHtml(
-          item.description ||
-          item.snippet ||
-          "Nessuna descrizione disponibile."
-        );
-
-        const visibleUrl =
-          escapeHtml(item.url || "");
-
-        list.innerHTML += `
+        html += `
           <div class="result-item">
-
             <div class="url-row">
-
-              <span class="verified-badge">
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                </svg>
-
-                Indicizzato
-              </span>
-
-              <span class="res-url">
-                ${visibleUrl}
-              </span>
-
+              <a href="${url}" class="res-url" target="_blank" rel="noopener noreferrer">
+                ${escapeHtml(url)}
+              </a>
+              ${verified}
             </div>
-
-            <a
-              href="${escapeHtml(url)}"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="res-title"
-              onclick="trackClick(${Number(item.id)})"
-            >
+            <a href="${url}" class="res-title" target="_blank" rel="noopener noreferrer">
               ${title}
             </a>
-
-            <p class="res-desc">
-              ${desc}
-            </p>
-
+            <p class="res-desc">${desc}</p>
           </div>
         `;
       });
 
-      trackImpressions(pagePoints);
+      list.innerHTML = html;
 
-      document.getElementById(
-        'pageIndicator'
-      ).textContent =
-        `Pagina ${currentPage}`;
-
-      document.getElementById(
-        'prevBtn'
-      ).disabled =
-        (currentPage === 1);
-
-      document.getElementById(
-        'nextBtn'
-      ).disabled =
-        (endIndex >= allFetchedResults.length);
+      const totalPages = Math.ceil(allFetchedResults.length / resultsPerPage);
+      document.getElementById('pageIndicator').textContent = `Pagina ${currentPage} di ${totalPages}`;
+      document.getElementById('prevBtn').disabled = currentPage === 1;
+      document.getElementById('nextBtn').disabled = currentPage === totalPages;
     }
 
     function goHome() {
-      document.body.classList.remove(
-        'results-active'
-      );
-
+      document.body.classList.remove('results-active');
+      currentPage = 1;
+      currentQuery = '';
       document.getElementById('homeQuery').value = '';
       document.getElementById('topQuery').value = '';
-
-      currentQuery = "";
-      currentPage = 1;
-      allFetchedResults = [];
-      currentSearchTime = 0;
+      window.history.pushState({}, '', window.location.pathname);
     }
 
+    // Clock
     function updateClock() {
-      document.getElementById('clock').textContent =
-        new Date().toLocaleTimeString('it-IT');
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      document.getElementById('clock').textContent = `${hours}:${minutes}:${seconds}`;
     }
 
     setInterval(updateClock, 1000);
     updateClock();
-
-    function openDonationModal() {
-      const overlay =
-        document.getElementById('donationOverlay');
-
-      overlay.classList.add('open');
-
-      document.body.style.overflow = 'hidden';
-    }
-
-    function closeDonationModal() {
-      const overlay =
-        document.getElementById('donationOverlay');
-
-      overlay.classList.remove('open');
-
-      if (
-        !document.body.classList.contains(
-          'results-active'
-        )
-      ) {
-        document.body.style.overflow = 'hidden';
-      } else {
-        document.body.style.overflow = 'auto';
-      }
-    }
-
-    function handleDonationOverlayClick(event) {
-      if (
-        event.target.id ===
-        'donationOverlay'
-      ) {
-        closeDonationModal();
-      }
-    }
-
-    function previewDonation(method) {
-      const footer =
-        document.getElementById('donationFooter');
-
-      if (method === 'Ko-fi') {
-        footer.textContent =
-          'Preview Ko-fi: qui in futuro verrà aperta la pagina reale di donazione.';
-      }
-
-      if (method === 'NexaGift') {
-        footer.textContent =
-          'Preview NexaGift: qui in futuro verrà aperta l’esperienza pubblicitaria/rewarded.';
-      }
-    }
-
-    document.addEventListener(
-      'keydown',
-      event => {
-        if (event.key === 'Escape') {
-          closeDonationModal();
-        }
-      }
-    );
-
-    const canvas =
-      document.getElementById('touch-canvas');
-
-    const ctx =
-      canvas.getContext('2d');
-
-    let width;
-    let height;
-    let dots = [];
-
-    const mouse = {
-      x: -1000,
-      y: -1000
-    };
-
-    function initCanvas() {
-      width = window.innerWidth;
-      height = window.innerHeight;
-
-      canvas.width = width;
-      canvas.height = height;
-
-      dots = [];
-
-      for (let i = 0; i < 160; i++) {
-        dots.push({
-          x: Math.random() * width,
-          y: Math.random() * height,
-          ox: 0,
-          oy: 0,
-          base: 0.05 + Math.random() * 0.05,
-          size: 1 + Math.random() * 0.8
-        });
-      }
-    }
-
-    window.addEventListener(
-      'resize',
-      initCanvas
-    );
-
-    window.addEventListener(
-      'mousemove',
-      e => {
-        mouse.x = e.clientX;
-        mouse.y = e.clientY;
-      }
-    );
-
-    function animate() {
-      ctx.clearRect(
-        0,
-        0,
-        width,
-        height
-      );
-
-      dots.forEach(d => {
-        const dx = mouse.x - d.x;
-        const dy = mouse.y - d.y;
-
-        const dist =
-          Math.sqrt(
-            dx * dx +
-            dy * dy
-          );
-
-        let pullX = 0;
-        let pullY = 0;
-
-        let alpha = d.base;
-        let size = d.size;
-
-        if (dist < 130) {
-          const force =
-            1 -
-            dist / 130;
-
-          const angle =
-            Math.atan2(
-              dy,
-              dx
-            );
-
-          pullX =
-            -Math.cos(angle) *
-            force *
-            20;
-
-          pullY =
-            -Math.sin(angle) *
-            force *
-            20;
-
-          alpha =
-            d.base +
-            force * 0.6;
-
-          size =
-            d.size +
-            force * 1.5;
-        }
-
-        d.ox +=
-          (pullX - d.ox) *
-          0.1;
-
-        d.oy +=
-          (pullY - d.oy) *
-          0.1;
-
-        ctx.beginPath();
-
-        ctx.arc(
-          d.x + d.ox,
-          d.y + d.oy,
-          size,
-          0,
-          Math.PI * 2
-        );
-
-        ctx.fillStyle =
-          `rgba(17,17,17,${alpha})`;
-
-        ctx.fill();
-      });
-
-      requestAnimationFrame(
-        animate
-      );
-    }
-
-    initCanvas();
-    animate();
   </script>
 
 </body>
+
 </html>
