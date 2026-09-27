@@ -209,6 +209,37 @@
       color: rgba(17, 17, 17, 0.38);
     }
 
+    .donate-btn-fixed {
+      position: fixed;
+      bottom: 40px;
+      right: 40px;
+      z-index: 45;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #111111;
+      text-decoration: underline;
+      transition: all 0.2s ease;
+      padding: 0;
+    }
+
+    .donate-btn-fixed:hover {
+      transform: translateY(-3px);
+      opacity: 0.8;
+    }
+
+    .donate-heart-icon {
+      font-size: 1.1rem;
+      color: #ef4444;
+      display: inline-block;
+    }
+
     .donation-overlay {
       position: fixed;
       inset: 0;
@@ -328,23 +359,85 @@
       color: rgba(17, 17, 17, 0.58);
     }
 
-    .donation-preview-badge {
-      display: inline-block;
-      margin-top: 14px;
-      padding: 4px 7px;
-      border: 1px solid rgba(17, 17, 17, 0.14);
-      font-size: 0.55rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: rgba(17, 17, 17, 0.45);
-    }
-
     .donation-footer {
       margin-top: 20px;
       font-size: 0.62rem;
       line-height: 1.5;
       color: rgba(17, 17, 17, 0.38);
       text-align: center;
+    }
+
+    .nexagift-player {
+      width: 100%;
+      background: rgba(17, 17, 17, 0.08);
+      border: 1px solid rgba(17, 17, 17, 0.12);
+      border-radius: 4px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .video-placeholder {
+      width: 100%;
+      height: 200px;
+      background: rgba(17, 17, 17, 0.12);
+      border-radius: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+      font-size: 0.8rem;
+      color: rgba(17, 17, 17, 0.5);
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 4px;
+      background: rgba(17, 17, 17, 0.15);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: #111111;
+      width: 0%;
+      transition: width 0.1s linear;
+    }
+
+    .timer {
+      font-size: 0.7rem;
+      color: rgba(17, 17, 17, 0.6);
+      margin-bottom: 12px;
+    }
+
+    .watch-btn {
+      background: #111111;
+      color: #f4f2ec;
+      border: none;
+      padding: 12px 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      transition: background 0.2s;
+      width: 100%;
+    }
+
+    .watch-btn:hover:not(:disabled) {
+      background: #333333;
+    }
+
+    .watch-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .counter {
+      font-size: 0.7rem;
+      color: rgba(17, 17, 17, 0.6);
+      margin-top: 12px;
     }
 
     .results-top-bar {
@@ -548,6 +641,10 @@
       padding: 40px 0;
     }
 
+    body.results-active .donate-btn-fixed {
+      bottom: 60px;
+    }
+
     @media (max-width: 700px) {
       header {
         padding: 24px 22px;
@@ -594,6 +691,16 @@
         width: 24px;
         height: 24px;
       }
+
+      .donate-btn-fixed {
+        bottom: 30px;
+        right: 30px;
+        font-size: 0.8rem;
+      }
+
+      .donation-options {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 
@@ -610,6 +717,11 @@
 
     <div class="clock" id="clock">00:00:00</div>
   </header>
+
+  <button class="donate-btn-fixed" onclick="openDonationModal()" title="Supporta NexaNova">
+    <span class="donate-heart-icon">♥</span>
+    Dona
+  </button>
 
   <div class="results-top-bar">
     <form class="search-frame" onsubmit="return handleSearch(event, 'top')">
@@ -704,6 +816,101 @@
     </div>
   </div>
 
+  <div
+    id="donationOverlay"
+    class="donation-overlay"
+    onclick="handleDonationOverlayClick(event)"
+  >
+    <div class="donation-modal" role="dialog" aria-modal="true" aria-labelledby="donationTitle">
+      <button
+        class="donation-close"
+        type="button"
+        onclick="closeDonationModal()"
+        aria-label="Chiudi"
+      >
+        ×
+      </button>
+
+      <div class="donation-kicker">Supporta NexaNova</div>
+
+      <h2 class="donation-title" id="donationTitle">Scegli come contribuire</h2>
+
+      <p class="donation-description">
+        Puoi supportare NexaNova con una donazione diretta oppure guadagnando tramite NexaGift, il nostro sistema di pubblicità.
+      </p>
+
+      <div class="donation-options">
+        <button
+          type="button"
+          class="donation-option"
+          onclick="openMoneyDonation()"
+        >
+          <div class="donation-option-icon">💰</div>
+          <div class="donation-option-title">Dona con i tuoi soldi</div>
+          <div class="donation-option-text">
+            Supporta direttamente tramite Ko-fi o PayPal.
+          </div>
+        </button>
+
+        <button
+          type="button"
+          class="donation-option"
+          onclick="openNexaGift()"
+        >
+          <div class="donation-option-icon">🎁</div>
+          <div class="donation-option-title">NexaGift</div>
+          <div class="donation-option-text">
+            Guadagna guardando video pubblicitari di 10+ secondi.
+          </div>
+        </button>
+      </div>
+
+      <div class="donation-footer" id="donationFooter"></div>
+    </div>
+  </div>
+
+  <div
+    id="nexagiftOverlay"
+    class="donation-overlay"
+    onclick="handleNexaGiftOverlayClick(event)"
+  >
+    <div class="donation-modal" role="dialog" aria-modal="true">
+      <button
+        class="donation-close"
+        type="button"
+        onclick="closeNexaGift()"
+        aria-label="Chiudi"
+      >
+        ×
+      </button>
+
+      <div class="donation-kicker">NexaGift - Guadagna</div>
+      <h2 class="donation-title">Guarda video e guadagna</h2>
+
+      <div class="nexagift-player">
+        <div class="video-placeholder" id="videoPlaceholder">
+          Video pubblicitario (simulato)
+        </div>
+
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="timer" id="timer">Tempo: 0s / 10s</div>
+
+        <button class="watch-btn" id="watchBtn" onclick="startWatchingVideo()">
+          Guarda video
+        </button>
+
+        <div class="counter" id="counter">Video guardati: 0</div>
+      </div>
+
+      <div class="donation-footer" style="margin-top: 20px;">
+        Ogni video completo vale 0,10€. Ritira quando raggiungi i 5€.
+      </div>
+    </div>
+  </div>
+
   <footer>
     Created By Mattia Ristori
   </footer>
@@ -716,6 +923,12 @@
     let currentQuery = "";
     let allFetchedResults = [];
     let currentSearchTime = 0;
+
+    // NexaGift State
+    let nexaGiftVideosWatched = parseInt(localStorage.getItem('nexaGiftVideos') || '0');
+    let isWatchingVideo = false;
+    let videoStartTime = 0;
+    const VIDEO_DURATION = 10000; // 10 secondi in ms
 
     function getFaviconUrl(urlString) {
       try {
@@ -933,6 +1146,94 @@
 
     setInterval(updateClock, 1000);
     updateClock();
+
+    // Donation Functions
+    function openDonationModal() {
+      document.getElementById('donationOverlay').classList.add('open');
+      document.getElementById('donationFooter').textContent = 'Scegli il metodo di supporto che preferisci.';
+    }
+
+    function closeDonationModal() {
+      document.getElementById('donationOverlay').classList.remove('open');
+    }
+
+    function handleDonationOverlayClick(e) {
+      if (e.target === document.getElementById('donationOverlay')) {
+        closeDonationModal();
+      }
+    }
+
+    function openMoneyDonation() {
+      window.open('https://ko-fi.com', '_blank');
+      closeDonationModal();
+    }
+
+    function openNexaGift() {
+      closeDonationModal();
+      document.getElementById('nexagiftOverlay').classList.add('open');
+      updateNexaGiftUI();
+    }
+
+    function closeNexaGift() {
+      document.getElementById('nexagiftOverlay').classList.remove('open');
+      isWatchingVideo = false;
+    }
+
+    function handleNexaGiftOverlayClick(e) {
+      if (e.target === document.getElementById('nexagiftOverlay')) {
+        closeNexaGift();
+      }
+    }
+
+    function updateNexaGiftUI() {
+      document.getElementById('counter').textContent = `Video guardati: ${nexaGiftVideosWatched} (Guadagno: ${(nexaGiftVideosWatched * 0.10).toFixed(2)}€)`;
+    }
+
+    function startWatchingVideo() {
+      if (isWatchingVideo) return;
+
+      isWatchingVideo = true;
+      videoStartTime = Date.now();
+
+      const watchBtn = document.getElementById('watchBtn');
+      watchBtn.disabled = true;
+      watchBtn.textContent = 'Video in corso...';
+
+      const progressFill = document.getElementById('progressFill');
+      const timerEl = document.getElementById('timer');
+
+      const updateInterval = setInterval(() => {
+        const elapsed = Date.now() - videoStartTime;
+        const percent = (elapsed / VIDEO_DURATION) * 100;
+
+        progressFill.style.width = Math.min(percent, 100) + '%';
+        timerEl.textContent = `Tempo: ${Math.floor(elapsed / 1000)}s / 10s`;
+
+        if (elapsed >= VIDEO_DURATION) {
+          clearInterval(updateInterval);
+          completeVideo();
+        }
+      }, 100);
+    }
+
+    function completeVideo() {
+      isWatchingVideo = false;
+      nexaGiftVideosWatched++;
+      localStorage.setItem('nexaGiftVideos', nexaGiftVideosWatched);
+
+      const watchBtn = document.getElementById('watchBtn');
+      watchBtn.disabled = false;
+      watchBtn.textContent = 'Guarda video';
+
+      document.getElementById('progressFill').style.width = '0%';
+      document.getElementById('timer').textContent = 'Tempo: 0s / 10s';
+
+      updateNexaGiftUI();
+
+      if (nexaGiftVideosWatched % 5 === 0) {
+        alert(`Complimenti! Hai guadagnato ${(nexaGiftVideosWatched * 0.10).toFixed(2)}€. Ritira quando raggiungi i 5€!`);
+      }
+    }
 
     // Canvas Animation - 160 puntini che si allontanano dal mouse
     const canvas = document.getElementById('touch-canvas');
