@@ -224,7 +224,6 @@
       font-weight: 700;
       letter-spacing: 0.08em;
       color: #111111;
-      text-decoration: underline;
       transition: all 0.2s ease;
       padding: 0;
     }
@@ -238,6 +237,11 @@
       font-size: 1.1rem;
       color: #ef4444;
       display: inline-block;
+      text-decoration: none;
+    }
+
+    .donate-text {
+      text-decoration: underline;
     }
 
     .donation-overlay {
@@ -720,7 +724,7 @@
 
   <button class="donate-btn-fixed" onclick="openDonationModal()" title="Supporta NexaNova">
     <span class="donate-heart-icon">♥</span>
-    Dona
+    <span class="donate-text">Dona</span>
   </button>
 
   <div class="results-top-bar">
@@ -1001,156 +1005,102 @@
       return false;
     }
 
-    function changePage(direction) {
-      currentPage += direction;
+    function showResults(query, page) {
+      const url = `${SEARCH_API_URL}${encodeURIComponent(query)}&page=${page}`;
 
-      if (currentPage < 1) {
-        currentPage = 1;
-      }
-
-      renderPage();
-
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-      });
-    }
-
-    async function showResults(query, page) {
-      const list = document.getElementById('resultsList');
-
-      list.innerHTML = `
-        <p class="results-label">
-          Ricerca con NexaNova...
-        </p>
-      `;
-
-      document.body.classList.add('results-active');
-
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-      });
-
-      const startTime = performance.now();
-
-      try {
-        const response = await fetch(
-          SEARCH_API_URL + encodeURIComponent(query),
-          {
-            method: 'GET',
-            cache: 'no-store'
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-
-        const data = await response.json();
-        const endTime = performance.now();
-
-        currentSearchTime = (endTime - startTime) / 1000;
-        allFetchedResults = Array.isArray(data.results) ? data.results : [];
-
-        if (allFetchedResults.length > 0) {
-          renderPage();
-        } else {
-          list.innerHTML = `
-            <p class="results-label">
-              Trovati 0 risultati in
-              ${currentSearchTime.toFixed(2)}
-              secondi
-            </p>
+      fetch(url)
+        .then(res => res.json())
+        .then(data => {
+          allFetchedResults = data.results || [];
+          currentPage = page;
+          renderResults();
+          updatePaginationButtons();
+          document.body.classList.add('results-active');
+          window.scrollTo(0, 0);
+        })
+        .catch(err => {
+          console.error('Search error:', err);
+          document.getElementById('resultsList').innerHTML = `
+            <div style="text-align: center; padding: 40px; color: rgba(17, 17, 17, 0.6);">
+              <p style="font-size: 1rem; margin: 0;">Errore nella ricerca</p>
+              <p style="font-size: 0.85rem; margin-top: 8px;">Prova a ripetere la ricerca più tardi</p>
+            </div>
           `;
-          document.getElementById('nextBtn').disabled = true;
-        }
-      } catch (error) {
-        console.error('Search error:', error);
+          document.body.classList.add('results-active');
+        });
+    }
 
-        list.innerHTML = `
-          <p class="results-label">
-            Errore nella ricerca. Riprova più tardi.
-          </p>
-        `;
+    function renderResults() {
+      const start = (currentPage - 1) * resultsPerPage;
+      const end = start + resultsPerPage;
+      const pageResults = allFetchedResults.slice(start, end);
 
-        document.getElementById('nextBtn').disabled = true;
+      let html = `<div class="results-label">RISULTATI: ${allFetchedResults.length} trovati</div>`;
+
+      if (pageResults.length === 0) {
+        html += `<div style="text-align: center; padding: 40px; color: rgba(17, 17, 17, 0.6);">Nessun risultato trovato</div>`;
+      } else {
+        pageResults.forEach(result => {
+          const faviconUrl = getFaviconUrl(result.url);
+          const safeResultUrl = safeUrl(result.url);
+          const resultTitle = escapeHtml(result.title);
+          const resultDesc = escapeHtml(result.description);
+          const resultUrl = escapeHtml(result.url);
+
+          html += `
+            <div class="result-item">
+              <div class="result-favicon">
+                ${faviconUrl ? `<img src="${faviconUrl}" alt="" onerror="this.style.display='none'">` : ''}
+              </div>
+              <div class="result-content">
+                <div class="url-row">
+                  <span class="res-url">${resultUrl}</span>
+                  ${result.verified ? '<span class="verified-badge">✓ Verificato</span>' : ''}
+                </div>
+                <a href="${safeResultUrl}" target="_blank" class="res-title">${resultTitle}</a>
+                <p class="res-desc">${resultDesc}</p>
+              </div>
+            </div>
+          `;
+        });
+      }
+
+      document.getElementById('resultsList').innerHTML = html;
+    }
+
+    function changePage(direction) {
+      const newPage = currentPage + direction;
+      const maxPages = Math.ceil(allFetchedResults.length / resultsPerPage);
+
+      if (newPage >= 1 && newPage <= maxPages) {
+        currentPage = newPage;
+        renderResults();
+        updatePaginationButtons();
+        document.querySelector('.results-container').scrollIntoView({ behavior: 'smooth' });
       }
     }
 
-    function renderPage() {
-      const list = document.getElementById('resultsList');
-      const startIdx = (currentPage - 1) * resultsPerPage;
-      const endIdx = startIdx + resultsPerPage;
-      const pageResults = allFetchedResults.slice(startIdx, endIdx);
+    function updatePaginationButtons() {
+      const maxPages = Math.ceil(allFetchedResults.length / resultsPerPage);
 
-      let html = `
-        <p class="results-label">
-          Trovati ${allFetchedResults.length} risultati in
-          ${currentSearchTime.toFixed(2)} secondi
-        </p>
-      `;
-
-      pageResults.forEach(result => {
-        const title = escapeHtml(result.title || 'Senza titolo');
-        const url = safeUrl(result.url);
-        const desc = escapeHtml(result.description || '');
-        const verified = result.verified ? '<span class="verified-badge">✓ Verificato</span>' : '';
-        const faviconUrl = getFaviconUrl(url);
-
-        html += `
-          <div class="result-item">
-            <div class="result-favicon">
-              <img src="${faviconUrl}" alt="favicon" onerror="this.style.display='none'" />
-            </div>
-            <div class="result-content">
-              <div class="url-row">
-                <a href="${url}" class="res-url" target="_blank" rel="noopener noreferrer">
-                  ${escapeHtml(url)}
-                </a>
-                ${verified}
-              </div>
-              <a href="${url}" class="res-title" target="_blank" rel="noopener noreferrer">
-                ${title}
-              </a>
-              <p class="res-desc">${desc}</p>
-            </div>
-          </div>
-        `;
-      });
-
-      list.innerHTML = html;
-
-      const totalPages = Math.ceil(allFetchedResults.length / resultsPerPage);
-      document.getElementById('pageIndicator').textContent = `Pagina ${currentPage} di ${totalPages}`;
       document.getElementById('prevBtn').disabled = currentPage === 1;
-      document.getElementById('nextBtn').disabled = currentPage === totalPages;
+      document.getElementById('nextBtn').disabled = currentPage === maxPages;
+      document.getElementById('pageIndicator').textContent = `Pagina ${currentPage}`;
     }
 
     function goHome() {
       document.body.classList.remove('results-active');
       currentPage = 1;
-      currentQuery = '';
-      document.getElementById('homeQuery').value = '';
-      document.getElementById('topQuery').value = '';
-      window.history.pushState({}, '', window.location.pathname);
+      currentQuery = "";
+      document.getElementById('homeQuery').value = "";
+      document.getElementById('topQuery').value = "";
+      window.history.replaceState({}, '', window.location.pathname);
     }
 
-    function updateClock() {
-      const now = new Date();
-      const hours = String(now.getHours()).padStart(2, '0');
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-      const seconds = String(now.getSeconds()).padStart(2, '0');
-      document.getElementById('clock').textContent = `${hours}:${minutes}:${seconds}`;
-    }
+    // ===== DONATION MODAL =====
 
-    setInterval(updateClock, 1000);
-    updateClock();
-
-    // Donation Functions
     function openDonationModal() {
       document.getElementById('donationOverlay').classList.add('open');
-      document.getElementById('donationFooter').textContent = 'Scegli il metodo di supporto che preferisci.';
     }
 
     function closeDonationModal() {
@@ -1164,19 +1114,20 @@
     }
 
     function openMoneyDonation() {
-      window.open('https://ko-fi.com', '_blank');
-      closeDonationModal();
+      // Ko-fi e PayPal links - da implementare
+      alert('Reindirizzamento a Ko-fi o PayPal...');
     }
 
+    // ===== NEXAGIFT SECTION =====
+
     function openNexaGift() {
-      closeDonationModal();
+      document.getElementById('donationOverlay').classList.remove('open');
       document.getElementById('nexagiftOverlay').classList.add('open');
       updateNexaGiftUI();
     }
 
     function closeNexaGift() {
       document.getElementById('nexagiftOverlay').classList.remove('open');
-      isWatchingVideo = false;
     }
 
     function handleNexaGiftOverlayClick(e) {
@@ -1185,137 +1136,60 @@
       }
     }
 
-    function updateNexaGiftUI() {
-      document.getElementById('counter').textContent = `Video guardati: ${nexaGiftVideosWatched} (Guadagno: ${(nexaGiftVideosWatched * 0.10).toFixed(2)}€)`;
-    }
-
     function startWatchingVideo() {
+      const btn = document.getElementById('watchBtn');
       if (isWatchingVideo) return;
 
       isWatchingVideo = true;
       videoStartTime = Date.now();
-
-      const watchBtn = document.getElementById('watchBtn');
-      watchBtn.disabled = true;
-      watchBtn.textContent = 'Video in corso...';
+      btn.disabled = true;
+      btn.textContent = 'Video in corso...';
 
       const progressFill = document.getElementById('progressFill');
-      const timerEl = document.getElementById('timer');
+      const timer = document.getElementById('timer');
 
-      const updateInterval = setInterval(() => {
+      const interval = setInterval(() => {
         const elapsed = Date.now() - videoStartTime;
-        const percent = (elapsed / VIDEO_DURATION) * 100;
+        const percent = Math.min((elapsed / VIDEO_DURATION) * 100, 100);
 
-        progressFill.style.width = Math.min(percent, 100) + '%';
-        timerEl.textContent = `Tempo: ${Math.floor(elapsed / 1000)}s / 10s`;
+        progressFill.style.width = percent + '%';
+        timer.textContent = `Tempo: ${Math.floor(elapsed / 1000)}s / 10s`;
 
         if (elapsed >= VIDEO_DURATION) {
-          clearInterval(updateInterval);
-          completeVideo();
+          clearInterval(interval);
+          completeVideoWatch();
         }
       }, 100);
     }
 
-    function completeVideo() {
+    function completeVideoWatch() {
       isWatchingVideo = false;
       nexaGiftVideosWatched++;
       localStorage.setItem('nexaGiftVideos', nexaGiftVideosWatched);
 
-      const watchBtn = document.getElementById('watchBtn');
-      watchBtn.disabled = false;
-      watchBtn.textContent = 'Guarda video';
+      const btn = document.getElementById('watchBtn');
+      btn.disabled = false;
+      btn.textContent = 'Guarda video';
 
       document.getElementById('progressFill').style.width = '0%';
       document.getElementById('timer').textContent = 'Tempo: 0s / 10s';
 
       updateNexaGiftUI();
-
-      if (nexaGiftVideosWatched % 5 === 0) {
-        alert(`Complimenti! Hai guadagnato ${(nexaGiftVideosWatched * 0.10).toFixed(2)}€. Ritira quando raggiungi i 5€!`);
-      }
     }
 
-    // Canvas Animation - 160 puntini che si allontanano dal mouse
-    const canvas = document.getElementById('touch-canvas');
-    const ctx = canvas.getContext('2d');
-
-    let width;
-    let height;
-    let dots = [];
-
-    const mouse = {
-      x: -1000,
-      y: -1000
-    };
-
-    function initCanvas() {
-      width = window.innerWidth;
-      height = window.innerHeight;
-
-      canvas.width = width;
-      canvas.height = height;
-
-      dots = [];
-
-      for (let i = 0; i < 160; i++) {
-        dots.push({
-          x: Math.random() * width,
-          y: Math.random() * height,
-          ox: 0,
-          oy: 0,
-          base: 0.05 + Math.random() * 0.05,
-          size: 1 + Math.random() * 0.8
-        });
-      }
+    function updateNexaGiftUI() {
+      document.getElementById('counter').textContent = `Video guardati: ${nexaGiftVideosWatched}`;
     }
 
-    window.addEventListener('resize', initCanvas);
-
-    window.addEventListener('mousemove', e => {
-      mouse.x = e.clientX;
-      mouse.y = e.clientY;
-    });
-
-    function animate() {
-      ctx.clearRect(0, 0, width, height);
-
-      dots.forEach(d => {
-        const dx = mouse.x - d.x;
-        const dy = mouse.y - d.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-
-        let pullX = 0;
-        let pullY = 0;
-        let alpha = d.base;
-        let size = d.size;
-
-        if (dist < 130) {
-          const force = 1 - dist / 130;
-          const angle = Math.atan2(dy, dx);
-
-          pullX = -Math.cos(angle) * force * 20;
-          pullY = -Math.sin(angle) * force * 20;
-
-          alpha = d.base + force * 0.6;
-          size = d.size + force * 1.5;
-        }
-
-        d.ox += (pullX - d.ox) * 0.1;
-        d.oy += (pullY - d.oy) * 0.1;
-
-        ctx.beginPath();
-        ctx.arc(d.x + d.ox, d.y + d.oy, size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(17,17,17,${alpha})`;
-        ctx.fill();
-      });
-
-      requestAnimationFrame(animate);
-    }
-
-    initCanvas();
-    animate();
+    // Clock update
+    setInterval(() => {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      document.getElementById('clock').textContent = `${hours}:${minutes}:${seconds}`;
+    }, 1000);
   </script>
 
 </body>
-
 </html>
