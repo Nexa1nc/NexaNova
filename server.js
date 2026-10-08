@@ -16,7 +16,10 @@ function normalizeResults(sourceName, items) {
     .map((item) => ({
       title: item.title || item.name || item.Text || 'Risultato',
       url: item.url || item.FirstURL || item.link || '#',
-      description: item.description || item.snippet || item.content || item.Text || '',
+      description: (item.description || item.snippet || item.content || item.Text || '')
+        .substring(0, 120)
+        .replace(/\s+/g, ' ')
+        .trim() + '...',
       source: sourceName,
     }));
 }
@@ -36,15 +39,29 @@ async function fetchDuckDuckGo(query) {
   })));
 }
 
-async function fetchWikipedia(query) {
-  const response = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*`);
-  const data = await response.json();
-  const items = data?.query?.search || [];
+async function fetchExaSearch(query) {
+  if (!process.env.EXA_API_KEY) return [];
 
-  return normalizeResults('Wikipedia', items.map((item) => ({
+  const response = await fetch('https://api.exa.ai/search', {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'x-api-key': process.env.EXA_API_KEY,
+    },
+    body: JSON.stringify({
+      query: query,
+      numResults: 10,
+      useAutoprompt: true,
+    }),
+  });
+
+  if (!response.ok) return [];
+  const data = await response.json();
+  return normalizeResults('Exa Search', (data.results || []).map((item) => ({
     title: item.title,
-    url: `https://en.wikipedia.org/wiki/${encodeURIComponent(item.title).replace(/%20/g, '_')}`,
-    description: item.snippet ? item.snippet.replace(/<[^>]*>/g, '') : '',
+    url: item.url,
+    description: item.text || item.summary || '',
   })));
 }
 
@@ -79,6 +96,54 @@ async function fetchTavily(query) {
   if (!response.ok) return [];
   const data = await response.json();
   return normalizeResults('Tavily', data.results || []);
+}
+
+async function fetchFirecrawl(query) {
+  if (!process.env.FIRECRAWL_API_KEY) return [];
+
+  const response = await fetch('https://api.firecrawl.dev/v0/search', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${process.env.FIRECRAWL_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      query: query,
+      limit: 10,
+    }),
+  });
+
+  if (!response.ok) return [];
+  const data = await response.json();
+  return normalizeResults('Firecrawl', (data.results || data.data || []).map((item) => ({
+    title: item.title || item.name,
+    url: item.url || item.link,
+    description: item.description || item.summary || '',
+  })));
+}
+
+async function fetchYouIO(query) {
+  if (!process.env.YOU_IO_API_KEY) return [];
+
+  const response = await fetch('https://api.yousearch.com/search', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${process.env.YOU_IO_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      query: query,
+      count: 10,
+    }),
+  });
+
+  if (!response.ok) return [];
+  const data = await response.json();
+  return normalizeResults('You.io', (data.results || data.hits || []).map((item) => ({
+    title: item.title || item.name,
+    url: item.url || item.link,
+    description: item.description || item.snippet || '',
+  })));
 }
 
 async function fetchSearx(query) {
@@ -127,9 +192,11 @@ async function fetchSerper(query) {
 
 const providerChain = [
   { name: 'duckduckgo', fn: fetchDuckDuckGo },
-  { name: 'wikipedia', fn: fetchWikipedia },
+  { name: 'exa', fn: fetchExaSearch },
   { name: 'brave', fn: fetchBrave },
   { name: 'tavily', fn: fetchTavily },
+  { name: 'firecrawl', fn: fetchFirecrawl },
+  { name: 'youio', fn: fetchYouIO },
   { name: 'searx', fn: fetchSearx },
   { name: 'bing', fn: fetchBing },
   { name: 'google', fn: fetchGoogle },
@@ -146,6 +213,9 @@ app.get('/api/search-config', (req, res) => {
     googleKey: process.env.GOOGLE_CUSTOM_SEARCH_API_KEY || '',
     googleEngineId: process.env.GOOGLE_CUSTOM_SEARCH_ENGINE_ID || '',
     serperKey: process.env.SERPER_API_KEY || '',
+    exaKey: process.env.EXA_API_KEY || '',
+    firecrawlKey: process.env.FIRECRAWL_API_KEY || '',
+    youioKey: process.env.YOU_IO_API_KEY || '',
     searxUrl: process.env.SEARX_URL || 'https://searx.be',
   });
 });
