@@ -7,6 +7,16 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+function truncateText(value, maxLength = 120) {
+  const raw = String(value ?? '')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!raw) return '';
+  return raw.length > maxLength ? `${raw.slice(0, maxLength).trim()}...` : raw;
+}
+
 function normalizeResults(sourceName, items) {
   if (!Array.isArray(items)) return [];
 
@@ -16,10 +26,7 @@ function normalizeResults(sourceName, items) {
     .map((item) => ({
       title: item.title || item.name || item.Text || 'Risultato',
       url: item.url || item.FirstURL || item.link || '#',
-      description: (item.description || item.snippet || item.content || item.Text || '')
-        .substring(0, 120)
-        .replace(/\s+/g, ' ')
-        .trim() + '...',
+      description: truncateText(item.description || item.snippet || item.content || item.Text || ''),
       source: sourceName,
     }));
 }
@@ -104,11 +111,11 @@ async function fetchFirecrawl(query) {
   const response = await fetch('https://api.firecrawl.dev/v0/search', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${process.env.FIRECRAWL_API_KEY}`,
+      Authorization: `Bearer ${process.env.FIRECRAWL_API_KEY}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      query: query,
+      query,
       limit: 10,
     }),
   });
@@ -128,11 +135,11 @@ async function fetchYouIO(query) {
   const response = await fetch('https://api.yousearch.com/search', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${process.env.YOU_IO_API_KEY}`,
+      Authorization: `Bearer ${process.env.YOU_IO_API_KEY}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      query: query,
+      query,
       count: 10,
     }),
   });
