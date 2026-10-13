@@ -853,7 +853,7 @@
 
     <script>
       const SEARCH_API_URL = '/api/search?q=';
-      const resultsPerPage = 10;
+      const resultsPerPage = 50; // aumentato per richiedere/pi  mostrare pi  risultati per pagina
 
       let currentPage = 1;
       let currentQuery = "";
@@ -958,7 +958,8 @@
         const startTime = performance.now();
 
         try {
-          const response = await fetch(SEARCH_API_URL + encodeURIComponent(query), {
+          // Richiediamo pi  risultati al backend (se supporta per_page)
+          const response = await fetch(SEARCH_API_URL + encodeURIComponent(query) + '&per_page=' + resultsPerPage, {
             method: 'GET',
             cache: 'no-store',
           });
@@ -1006,13 +1007,8 @@
         pageResults.forEach((result) => {
           const title = escapeHtml(result.title || 'Senza titolo');
           const url = safeUrl(result.url || '#');
-          const desc = escapeHtml(
-            result.description ||
-              result.snippet ||
-              result.summary ||
-              result.text ||
-              'Nessuna descrizione disponibile.'
-          );
+          const descRaw = result.description || result.snippet || result.summary || result.text || result.excerpt || result.body || (result.meta && result.meta.description) || '';
+          const desc = escapeHtml(descRaw.trim()) || 'Nessuna descrizione disponibile.';
           const verified = result.verified
             ? '<span class="verified-badge">✓ Verificato</span>'
             : '';
@@ -1040,7 +1036,7 @@
 
         list.innerHTML = html;
 
-        const totalPages = Math.ceil(allFetchedResults.length / resultsPerPage);
+        const totalPages = Math.max(1, Math.ceil(allFetchedResults.length / resultsPerPage));
         document.getElementById('pageIndicator').textContent = `Pagina ${currentPage} di ${totalPages}`;
         document.getElementById('prevBtn').disabled = currentPage <= 1;
         document.getElementById('nextBtn').disabled = currentPage >= totalPages;
