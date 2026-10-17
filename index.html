@@ -852,8 +852,11 @@
     <footer>Created By Mattia Ristori</footer>
 
     <script>
+      // Primary backend search (existing API)
       const SEARCH_API_URL = '/api/search?q=';
-      const resultsPerPage = 50; // aumentato per richiedere/pi  mostrare pi  risultati per pagina
+      // Your self-hosted SearxNG instance (used as first fallback/source)
+      const SEARXNG_URL = 'https://mio-searxng.onrender.com/search?q='; // <- replace with your URL if different
+      const resultsPerPage = 50; // increased to try and show more results per search
 
       let currentPage = 1;
       let currentQuery = "";
@@ -946,6 +949,41 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
 
+      async function fetchSearxResults(query) {
+        try {
+          const url = SEARXNG_URL + encodeURIComponent(query) + '&format=json&language=it&per_page=' + resultsPerPage;
+          const resp = await fetch(url, { method: 'GET', cache: 'no-store' });
+          if (!resp.ok) return [];
+          const data = await resp.json();
+          if (!Array.isArray(data.results)) return [];
+          return data.results.map(r => ({
+            title: r.title || '',
+            url: r.url || r.external_url || r.uri || '',
+            description: (r.content || r.excerpt || r.description || r.text || '')
+          }));
+        } catch (e) {
+          console.warn('SearxNG fetch failed', e);
+          return [];
+        }
+      }
+
+      async function fetchBackendResults(query) {
+        try {
+          const resp = await fetch(SEARCH_API_URL + encodeURIComponent(query) + '&per_page=' + resultsPerPage, { method: 'GET', cache: 'no-store' });
+          if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+          const data = await resp.json();
+          if (!Array.isArray(data.results)) return [];
+          return data.results.map(r => ({
+            title: r.title || r.name || r.label || '',
+            url: r.url || r.link || r.loc || '',
+            description: (r.description || r.snippet || r.summary || r.text || r.excerpt || r.body || (r.meta && r.meta.description) || '')
+          }));
+        } catch (e) {
+          console.warn('Backend fetch failed', e);
+          return [];
+        }
+      }
+
       async function showResults(query, page) {
         const list = document.getElementById('resultsList');
         list.innerHTML = `
@@ -958,26 +996,31 @@
         const startTime = performance.now();
 
         try {
-          // Richiediamo pi  risultati al backend (se supporta per_page)
-          const response = await fetch(SEARCH_API_URL + encodeURIComponent(query) + '&per_page=' + resultsPerPage, {
-            method: 'GET',
-            cache: 'no-store',
-          });
+          // 1) Try user-provided SearxNG first
+          const searxResults = await fetchSearxResults(query);
 
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
+          // 2) If SearxNG returned fewer than desired results, call backend and merge (backend as fallback)
+          let backendResults = [];
+          if (searxResults.length < resultsPerPage) {
+            backendResults = await fetchBackendResults(query);
           }
 
-          const data = await response.json();
+          // Merge unique by url (prefer searx results order)
+          const map = new Map();
+          searxResults.forEach(r => { if (r.url) map.set(r.url, r); });
+          backendResults.forEach(r => { if (r.url && !map.has(r.url)) map.set(r.url, r); });
+
+          const combined = Array.from(map.values()).slice(0, resultsPerPage);
           const endTime = performance.now();
           currentSearchTime = (endTime - startTime) / 1000;
-          allFetchedResults = Array.isArray(data.results) ? data.results : [];
+
+          allFetchedResults = combined;
 
           if (allFetchedResults.length > 0) {
             renderPage();
           } else {
             list.innerHTML = `
-              <p class="results-label">Trova in NexaNova...</p>
+              <p class="results-label">Nessun risultato trovato.</p>
             `;
             document.getElementById('nextBtn').disabled = true;
             document.getElementById('prevBtn').disabled = true;
@@ -1007,11 +1050,9 @@
         pageResults.forEach((result) => {
           const title = escapeHtml(result.title || 'Senza titolo');
           const url = safeUrl(result.url || '#');
-          const descRaw = result.description || result.snippet || result.summary || result.text || result.excerpt || result.body || (result.meta && result.meta.description) || '';
-          const desc = escapeHtml(descRaw.trim()) || 'Nessuna descrizione disponibile.';
-          const verified = result.verified
-            ? '<span class="verified-badge">✓ Verificato</span>'
-            : '';
+          const descRaw = result.description || '';
+          const desc = escapeHtml(String(descRaw).trim()) || 'Nessuna descrizione disponibile.';
+          const verified = '';
 
           const faviconUrl = getFaviconUrl(url);
 
@@ -1144,7 +1185,7 @@
         updateNexaGiftUI();
 
         if (nexaGiftVideosWatched % 5 === 0) {
-          alert(`Completamento! Hai guadagnato €${(nexaGiftVideosWatched * 0.1).toFixed(2)}. Ritiro quando raggiungi i 5€.`);
+          alert(`Completamento! Hai guadagnato €${(nexaGiftVideosWatched * 0.1).toFixed(2)}. Ritiro quando raggiungi i 5€. `);
         }
       }
 
